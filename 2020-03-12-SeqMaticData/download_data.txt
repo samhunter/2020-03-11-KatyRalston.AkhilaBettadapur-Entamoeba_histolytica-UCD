@@ -1,0 +1,15 @@
+Download with AWS cli tools:
+
+tadpole
+
+cd /share/biocore/projects/Ralston_K_UCD
+mkdir 2020-03-12-SeqMaticData
+cd 2020-03-12-SeqMaticData
+module load awscli
+
+aws configure
+Access Key ID: IYSUOJBZJJ566C5OCIG9
+Secret Access Key: LjNX1PgvMNyk4H56zlzqALB5XY2AefRMeKXSvnLD
+us-east-1
+
+aws s3 cp s3://seqmatic-data-releases/Katherine.Ralston/200312_UD014/fastq/ ./ --recursive  --endpoint-url=https://s3.wasabisys.com
