@@ -1,14 +1,34 @@
 
+Project Description:
+    Katy and Akhila are interested in determining how well their approach to producing knock down libraries is working.
+
+Questions:
+    1) How does each sample look? 
 
 
-Remote working: /share/biocore/projects/Ralston_K_UCD
+Remote working: /share/biocore/projects/Ralston_K_UCD/sh-analysis
+
+
+RawData:
+/share/biocore/projects/Ralston_K_UCD/2020-03-12-SeqMaticData 
+/share/illumina/miseq/200203_M00384_0224_MS9229847-500V2/MiSeqAnalysis/
+/share/illumina/miseq/190819_M00384_0188_MS7945297-300V2/MiSeqAnalysis/
 
 
 
 
 ######## Start Analysis ###########
+# Link in raw data:
+cd /share/biocore/projects/Ralston_K_UCD/sh-analysis/
+
+mkdir 00-RawData
+ln -s /share/biocore/projects/Ralston_K_UCD/2020-03-12-SeqMaticData/*.gz ./00-RawData/
+ln -s /share/illumina/miseq/200203_M00384_0224_MS9229847-500V2/MiSeqAnalysis/*.gz ./00-RawData/
+ln -s /share/illumina/miseq/190819_M00384_0188_MS7945297-300V2/MiSeqAnalysis/*.gz ./00-RawData
+
 
 # Run fastqc and multiqc to generate some information on sample quality
+
 mkdir -p ./00-FastQC/samples/
 fastqc -o ./00-FastQC/samples/ -t 60 ./00-RawData/*
 
