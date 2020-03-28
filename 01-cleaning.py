@@ -1,4 +1,5 @@
 from glob import glob
+import re
 import os
 
 cleaning = open("01-cleaning_commands.sh", 'w')
@@ -7,7 +8,8 @@ os.system("mkdir -p 01-cleaned")
 
 for r1 in glob("./00-RawData/*_R1_*.fastq.gz"):
     #s = "_".join(r1.split('/')[2].split("_")[0:2])
-    s = r1.split('/')[-1].split('_')[0]
+    #s = r1.split('/')[-1].split('_')[0]
+    s = re.findall(r'(^.*)_S.*_L.*', r1.split('/')[-1])[0]
     #r2 = r1.replace("_R1", "_R2")
     log = "./01-cleaned/" + s + "_stats.log"
     cmd = "hts_Stats -L " + log + " -U " + r1 + " | " # record stats for raw reads
