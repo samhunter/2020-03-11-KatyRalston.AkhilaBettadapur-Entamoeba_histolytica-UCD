@@ -36,18 +36,8 @@ module load multiqc
 multiqc -d ./00-FastQC/samples/ -i FastQC -o ./00-FastQC/
 
 
-1                                      D10_FB-1
-2                                      D11_FB-2
-3                                      D12_FB-3
-4                                   F10_LibB4-1
-5                                   F11_LibB4-2
-6                                   F12_LibB4-3
-7                                    F1_LibB1-1
-8                                    F2_LibB1-2
-9                                    F3_LibB1-3
-10                                   F4_LibB2-1
-11                                   F5_LibB2-2
-12                                   F6_LibB2-3
-13                                   F7_LibB3-1
-14                                   F8_LibB3-2
-15                                   F9_LibB3-3
+## This data is essentially random amplicon data, but the read length is too short to allow overlap.
+
+
+python 01-cleaning.py
+
