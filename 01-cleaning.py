@@ -10,9 +10,9 @@ for r1 in glob("./00-RawData/*_R1_*.fastq.gz"):
     #s = "_".join(r1.split('/')[2].split("_")[0:2])
     #s = r1.split('/')[-1].split('_')[0]
     s = re.findall(r'(^.*)_S.*_L.*', r1.split('/')[-1])[0]
-    #r2 = r1.replace("_R1", "_R2")
+    r2 = r1.replace("_R1", "_R2")
     log = "./01-cleaned/" + s + "_stats.log"
-    cmd = "hts_Stats -L " + log + " -U " + r1 + " | " # record stats for raw reads
+    cmd = "hts_Stats -L " + log + " -1 " + r1 + " -2 " + r2 + " | " # record stats for raw reads
     cmd += "hts_SeqScreener -k 12 -AL " + log + " | "  # screen for phix  
     #cmd += "hts_SuperDeduper -e 100000 -AL " + log + " | " # remove PCR duplicates, record saturation
     #cmd += "hts_SeqScreener -s rRNA.fasta -r -O -A -L " + log + " | " # count rRNA reads
