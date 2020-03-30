@@ -43,3 +43,7 @@ parallel < 01-cleaning_commands.sh
 
 ## Map reads ## 
 # Setup reference:
+#   previously setup by Matt
+
+python 02-map_reads.py
+sh 02-map_reads.sh
