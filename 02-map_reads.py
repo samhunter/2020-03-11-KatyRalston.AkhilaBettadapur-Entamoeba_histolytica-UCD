@@ -17,11 +17,11 @@ for r1 in glob("./01-cleaned/*_R1.fastq.gz"):
     outf.write(cmd + '\n')
     cmd = "samtools sort --threads 110 ./02-mapped/%s.bam -o ./03-sorted/%s_sorted.bam" % (s, s)
     outf.write(cmd + '\n')
-    cmd = "samtools idxstats ./03-sorted/%s_sorted.bam > ./03-sorted/%s_sorted.idxstats"
+    cmd = "samtools idxstats ./03-sorted/%s_sorted.bam > ./03-sorted/%s_sorted.idxstats" % (s, s)
     outf.write(cmd + '\n')
-    cmd = "samtools flagstat ./03-sorted/%s_sorted.bam > ./03-sorted/%s_sorted.flagstat"
+    cmd = "samtools flagstat ./03-sorted/%s_sorted.bam > ./03-sorted/%s_sorted.flagstat" % (s, s)
     outf.write(cmd + '\n')
-    cmd = "samtools stats ./03-sorted/%s_sorted.bam > ./03-sorted/%s_sorted.stats"
+    cmd = "samtools stats ./03-sorted/%s_sorted.bam > ./03-sorted/%s_sorted.stats" % (s, s)
     outf.write(cmd + '\n')
 
 outf.close()
