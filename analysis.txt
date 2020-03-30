@@ -36,8 +36,10 @@ module load multiqc
 multiqc -d ./00-FastQC/samples/ -i FastQC -o ./00-FastQC/
 
 
-## This data is essentially random amplicon data, but the read length is too short to allow overlap.
-
+## This data is essentially random amplicon data, but the read length is too short to allow overlap in most cases. However, it isn't a good idea to trim either end because then the amplicons won't start/end in the same place.
 
 python 01-cleaning.py
+parallel < 01-cleaning_commands.sh
 
+## Map reads ## 
+# Setup reference:
