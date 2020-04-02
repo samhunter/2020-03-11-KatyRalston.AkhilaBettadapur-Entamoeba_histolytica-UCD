@@ -47,3 +47,11 @@ parallel < 01-cleaning_commands.sh
 
 python 02-map_reads.py
 sh 02-map_reads.sh
+
+mkdir 03-mapping_QC
+multiqc -d ./03-sorted -i mappingQC -o 03-mapping_QC
+
+
+ # Count Unique Fragments:
+ 03-count_fragments.py
+ 
