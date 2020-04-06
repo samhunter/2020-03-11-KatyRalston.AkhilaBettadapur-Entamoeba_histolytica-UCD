@@ -1,0 +1,71 @@
+{ "hts_Stats_34025": {
+    "Notes": "",
+    "totalFragmentsInput": 149129,
+    "totalFragmentsOutput": 149129,
+    "R1_readlength_histogram": [ [151,149129] ],
+    "R2_readlength_histogram": [ [151,149129] ],
+    "Base_composition": {
+        "A": 16156616,
+        "C": 6603557,
+        "G": 6153772,
+        "T": 16123013,
+        "N": 0
+    },
+    "Single_end": {
+        "SE_in": 0,
+        "SE_out": 0,
+        "SE_bpLen": 0,
+        "SE_bQ30": 0
+    },
+    "Paired_end": {
+        "PE_in": 149129,
+        "PE_out": 149129,
+        "R1_bpLen": 22518479,
+        "R1_bQ30": 21349701,
+        "R2_bpLen": 22518479,
+        "R2_bQ30": 20765410
+    }
+  }, "hts_SuperDeduper_34026": {
+    "Notes": "",
+    "totalFragmentsInput": 149129,
+    "totalFragmentsOutput": 24342,
+    "ignored": 0,
+    "duplicate": 124787,
+    "duplicate_saturation": [ [10000,5169], [20000,12879], [30000,21110], [40000,29563], [50000,38095], [60000,46895], [70000,55665], [80000,64483], [90000,73081], [100000,81732], [110000,90444], [120000,99204], [130000,107992], [140000,116809], [149129,124787] ],
+    "Single_end": {
+        "SE_in": 0,
+        "SE_out": 0
+    },
+    "Paired_end": {
+        "PE_in": 149129,
+        "PE_out": 24342
+    }
+  }, "hts_Stats_34027": {
+    "Notes": "",
+    "totalFragmentsInput": 24342,
+    "totalFragmentsOutput": 24342,
+    "R1_readlength_histogram": [ [151,24342] ],
+    "R2_readlength_histogram": [ [151,24342] ],
+    "Base_composition": {
+        "A": 2373902,
+        "C": 1320308,
+        "G": 1288154,
+        "T": 2368920,
+        "N": 0
+    },
+    "Single_end": {
+        "SE_in": 0,
+        "SE_out": 0,
+        "SE_bpLen": 0,
+        "SE_bQ30": 0
+    },
+    "Paired_end": {
+        "PE_in": 24342,
+        "PE_out": 24342,
+        "R1_bpLen": 3675642,
+        "R1_bQ30": 3274532,
+        "R2_bpLen": 3675642,
+        "R2_bQ30": 3133092
+    }
+  }
+}
