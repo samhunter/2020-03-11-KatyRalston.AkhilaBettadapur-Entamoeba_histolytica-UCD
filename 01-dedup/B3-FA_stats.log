@@ -1,0 +1,71 @@
+{ "hts_Stats_34138": {
+    "Notes": "",
+    "totalFragmentsInput": 240107,
+    "totalFragmentsOutput": 240107,
+    "R1_readlength_histogram": [ [151,240107] ],
+    "R2_readlength_histogram": [ [151,240107] ],
+    "Base_composition": {
+        "A": 26034973,
+        "C": 10527317,
+        "G": 9634385,
+        "T": 26315639,
+        "N": 0
+    },
+    "Single_end": {
+        "SE_in": 0,
+        "SE_out": 0,
+        "SE_bpLen": 0,
+        "SE_bQ30": 0
+    },
+    "Paired_end": {
+        "PE_in": 240107,
+        "PE_out": 240107,
+        "R1_bpLen": 36256157,
+        "R1_bQ30": 34790350,
+        "R2_bpLen": 36256157,
+        "R2_bQ30": 33854736
+    }
+  }, "hts_SuperDeduper_34139": {
+    "Notes": "",
+    "totalFragmentsInput": 240107,
+    "totalFragmentsOutput": 230954,
+    "ignored": 0,
+    "duplicate": 9153,
+    "duplicate_saturation": [ [10000,368], [20000,716], [30000,1096], [40000,1402], [50000,1754], [60000,2211], [70000,2519], [80000,2827], [90000,3107], [100000,3374], [110000,3612], [120000,3906], [130000,4315], [140000,4776], [150000,5206], [160000,5676], [170000,6132], [180000,6610], [190000,7054], [200000,7451], [210000,7856], [220000,8264], [230000,8697], [240000,9151], [240107,9153] ],
+    "Single_end": {
+        "SE_in": 0,
+        "SE_out": 0
+    },
+    "Paired_end": {
+        "PE_in": 240107,
+        "PE_out": 230954
+    }
+  }, "hts_Stats_34140": {
+    "Notes": "",
+    "totalFragmentsInput": 230954,
+    "totalFragmentsOutput": 230954,
+    "R1_readlength_histogram": [ [151,230954] ],
+    "R2_readlength_histogram": [ [151,230954] ],
+    "Base_composition": {
+        "A": 25016062,
+        "C": 10149767,
+        "G": 9290145,
+        "T": 25292134,
+        "N": 0
+    },
+    "Single_end": {
+        "SE_in": 0,
+        "SE_out": 0,
+        "SE_bpLen": 0,
+        "SE_bQ30": 0
+    },
+    "Paired_end": {
+        "PE_in": 230954,
+        "PE_out": 230954,
+        "R1_bpLen": 34874054,
+        "R1_bQ30": 33536543,
+        "R2_bpLen": 34874054,
+        "R2_bQ30": 32634036
+    }
+  }
+}

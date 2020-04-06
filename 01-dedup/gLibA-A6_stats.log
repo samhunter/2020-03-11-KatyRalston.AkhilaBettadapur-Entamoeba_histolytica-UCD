@@ -1,0 +1,71 @@
+{ "hts_Stats_33970": {
+    "Notes": "",
+    "totalFragmentsInput": 264725,
+    "totalFragmentsOutput": 264725,
+    "R1_readlength_histogram": [ [151,264725] ],
+    "R2_readlength_histogram": [ [151,264725] ],
+    "Base_composition": {
+        "A": 28726690,
+        "C": 11541887,
+        "G": 10648324,
+        "T": 28765270,
+        "N": 264779
+    },
+    "Single_end": {
+        "SE_in": 0,
+        "SE_out": 0,
+        "SE_bpLen": 0,
+        "SE_bQ30": 0
+    },
+    "Paired_end": {
+        "PE_in": 264725,
+        "PE_out": 264725,
+        "R1_bpLen": 39973475,
+        "R1_bQ30": 37962217,
+        "R2_bpLen": 39973475,
+        "R2_bQ30": 35116003
+    }
+  }, "hts_SuperDeduper_33971": {
+    "Notes": "",
+    "totalFragmentsInput": 264725,
+    "totalFragmentsOutput": 23757,
+    "ignored": 0,
+    "duplicate": 240968,
+    "duplicate_saturation": [ [10000,7022], [20000,15731], [30000,24824], [40000,34002], [50000,43283], [60000,52618], [70000,61945], [80000,71235], [90000,80526], [100000,89816], [110000,99031], [120000,108176], [130000,117078], [140000,125797], [150000,134819], [160000,144059], [170000,153278], [180000,162617], [190000,171922], [200000,181290], [210000,190598], [220000,199943], [230000,209301], [240000,218559], [250000,227752], [260000,236897], [264725,240968] ],
+    "Single_end": {
+        "SE_in": 0,
+        "SE_out": 0
+    },
+    "Paired_end": {
+        "PE_in": 264725,
+        "PE_out": 23757
+    }
+  }, "hts_Stats_33972": {
+    "Notes": "",
+    "totalFragmentsInput": 23757,
+    "totalFragmentsOutput": 23757,
+    "R1_readlength_histogram": [ [151,23757] ],
+    "R2_readlength_histogram": [ [151,23757] ],
+    "Base_composition": {
+        "A": 2146181,
+        "C": 1423688,
+        "G": 1395762,
+        "T": 2185175,
+        "N": 23808
+    },
+    "Single_end": {
+        "SE_in": 0,
+        "SE_out": 0,
+        "SE_bpLen": 0,
+        "SE_bQ30": 0
+    },
+    "Paired_end": {
+        "PE_in": 23757,
+        "PE_out": 23757,
+        "R1_bpLen": 3587307,
+        "R1_bQ30": 3232019,
+        "R2_bpLen": 3587307,
+        "R2_bQ30": 2392481
+    }
+  }
+}
