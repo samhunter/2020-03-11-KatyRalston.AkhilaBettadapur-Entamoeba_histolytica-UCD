@@ -41,6 +41,12 @@ multiqc -d ./00-FastQC/samples/ -i FastQC -o ./00-FastQC/
 python 01-cleaning.py
 parallel < 01-cleaning_commands.sh
 
+
+## Also test duplication rate, but only write logs:
+python 01-test_dedup.py
+parallel < 01-dedup_commands.sh
+
+
 ## Map reads ## 
 # Setup reference:
 #   previously setup by Matt
@@ -53,5 +59,17 @@ multiqc -d ./03-sorted -i mappingQC -o 03-mapping_QC
 
 
  # Count Unique Fragments:
- 03-count_fragments.py
- 
+ python 03-count_fragments.py > 03-count_fragments.log
+
+
+### Get one contig for visualization ###
+samtools merge -R DS571146:1-36395 ./04-example-contig/merged.bam ./03-sorted/*.bam
+
+from Bio import SeqIO
+outf = open('./04-example-contig/DS571146.fasta', 'w')
+for rec in SeqIO.parse('./Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta', 'fasta'):
+    if rec.id == 'DS571146':
+        SeqIO.write(rec, outf, 'fasta')
+        break
+
+
