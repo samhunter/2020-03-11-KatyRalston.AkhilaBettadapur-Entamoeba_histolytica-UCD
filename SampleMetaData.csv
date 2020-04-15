@@ -1,0 +1,40 @@
+SampleID	FileID	Fragmented.gDNA	Fragmentation	Type	Rep	PCR.Cycles	Sequencing	Description
+Plasmid.FC.18c.r1	B10-Lib18c	FC	lc	Plasmid	1	18	200203_M00384	plasmid library made with gDNA fragments that had 18 rounds of PCR 
+Plasmid.FC.18c.r2	B11-Lib18c	FC	lc	Plasmid	2	18	200203_M00384	plasmid library made with gDNA fragments that had 18 rounds of PCR 
+Plasmid.FC.18c.r3	B12-Lib18c	FC	lc	Plasmid	3	18	200203_M00384	plasmid library made with gDNA fragments that had 18 rounds of PCR 
+gDNA.FC.18c.r1	B7-F18c	FC	lc	gDNA	1	18	200203_M00384	gDNA fragments (NOT in plasmid) fragment that had 18 rounds of PCR
+gDNA.FC.18c.r2	B8-F18c	FC	lc	gDNA	2	18	200203_M00384	gDNA fragments (NOT in plasmid) fragment that had 18 rounds of PCR
+gDNA.FC.18c.r3	B9-F18c	FC	lc	gDNA	3	18	200203_M00384	gDNA fragments (NOT in plasmid) fragment that had 18 rounds of PCR
+gDNA.FA.5c.r1	B1-FA	FA	A	gDNA	1	5	200203_M00384	gDNA fragments (NOT in plasmid) fragment A
+gDNA.FA.5c.r2	B2-FA	FA	A	gDNA	2	5	200203_M00384	gDNA fragments (NOT in plasmid) fragment A
+gDNA.FA.5c.r3	B3-FA	FA	A	gDNA	3	5	200203_M00384	gDNA fragments (NOT in plasmid) fragment A
+Plasmid.FA.5c.r1	gLibA-A5	FA	A	Plasmid	1	5	190819_M00384	Plasmid libraries made with gDNA fragment A
+Plasmid.FA.5c.r2	gLibA-A6	FA	A	Plasmid	2	5	190819_M00384	Plasmid libraries made with gDNA fragment A
+Plasmid.FA.5c.r3	gLibA-A7	FA	A	Plasmid	3	5	190819_M00384	Plasmid libraries made with gDNA fragment A
+gDNA.FC.5c.r1	B4-FC	FC	C	gDNA	1	5	200203_M00384	gDNA fragments (NOT in plasmid) fragment C
+gDNA.FC.5c.r2	B5-FC	FC	C	gDNA	2	5	200203_M00384	gDNA fragments (NOT in plasmid) fragment C
+gDNA.FC.5c.r3	B6-FC	FC	C	gDNA	3	5	200203_M00384	gDNA fragments (NOT in plasmid) fragment C
+Plasmid.FC.5c.r1.C1	C1-LibC1	FC	C1	Plasmid	1	5	200203_M00384	Plasmid libraries made with gDNA fragment C
+Plasmid.FC.5c.r2.C1	C2-LibC2	FC	C1	Plasmid	2	5	200203_M00384	Plasmid libraries made with gDNA fragment C
+Plasmid.FC.5c.r3.C1	C3-LibC1	FC	C1	Plasmid	3	5	200203_M00384	Plasmid libraries made with gDNA fragment C
+Plasmid.FC.5c.r1.C2	C4-LibC2	FC	C2	Plasmid	1	5	200203_M00384	Plasmid libraries made with gDNA fragment C
+Plasmid.FC.5c.r2.C2	C5-LibC2	FC	C2	Plasmid	2	5	200203_M00384	Plasmid libraries made with gDNA fragment C
+Plasmid.FC.5c.r3.C2	C6-LibC2	FC	C2	Plasmid	3	5	200203_M00384	Plasmid libraries made with gDNA fragment C
+Plasmid.FC.5c.r1.C3	C7-LibC3	FC	C3	Plasmid	1	5	200203_M00384	Plasmid libraries made with gDNA fragment C
+Plasmid.FC.5c.r3.C3	C8-LibC3	FC	C3	Plasmid	2	5	200203_M00384	Plasmid libraries made with gDNA fragment C
+Plasmid.FC.5c.r3.C3	C9-LibC3	FC	C3	Plasmid	3	5	200203_M00384	Plasmid libraries made with gDNA fragment C
+gDNA.FB.5c.r1	D10_FB-1	FB	B	gDNA	1	5	2020-03-12-SeqMaticData	gDNA fragments of library B
+gDNA.FB.5c.r2	D11_FB-2	FB	B	gDNA	2	5	2020-03-12-SeqMaticData	gDNA fragments of library B
+gDNA.FB.5c.r3	D12_FB-3	FB	B	gDNA	3	5	2020-03-12-SeqMaticData	gDNA fragments of library B
+Plasmid.FB.5c.r1.B1	F1_LibB1-1	FB	B1	Plasmid	1	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r2.B1	F2_LibB1-2	FB	B1	Plasmid	2	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r3.B1	F3_LibB1-3	FB	B1	Plasmid	3	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r1.B2	F4_LibB2-1	FB	B2	Plasmid	1	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r2.B2	F5_LibB2-2	FB	B2	Plasmid	2	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r3.B2	F6_LibB2-3	FB	B2	Plasmid	3	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r1.B3	F7_LibB3-1	FB	B3	Plasmid	1	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r2.B3	F8_LibB3-2	FB	B3	Plasmid	2	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r3.B3	F9_LibB3-3	FB	B3	Plasmid	3	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r1.B4	F10_LibB4-1	FB	B4	Plasmid	1	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r2.B4	F11_LibB4-2	FB	B4	Plasmid	2	5	2020-03-12-SeqMaticData	library plasmids made from FB
+Plasmid.FB.5c.r3.B4	F12_LibB4-3	FB	B4	Plasmid	3	5	2020-03-12-SeqMaticData	library plasmids made from FB

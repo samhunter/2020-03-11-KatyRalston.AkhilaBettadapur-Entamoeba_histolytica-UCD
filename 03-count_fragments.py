@@ -9,6 +9,7 @@ from collections import Counter
 import subprocess
 import csv
 from glob import glob
+from operator import itemgetter
 
 '''
 
@@ -143,3 +144,20 @@ for key in fragments.keys():
     outfw.writerow(out)
     outf.flush()
 outf.close()
+
+
+## Try to infer actual fragments 
+# Sort by R1contig, R1start
+putative_fragments = []
+for key, item in fragments.iteritems:
+    support = 0
+    for i in items.values():
+        if i > 1:
+            support += 1
+    key2 = key.split('_')
+
+
+s = sorted(fragments.keys()[0:50], key=lambda x:itemgetter(0,1,,x.split('_')[0:2])
+
+
+

@@ -36,6 +36,14 @@ module load multiqc
 multiqc -d ./00-FastQC/samples/ -i FastQC -o ./00-FastQC/
 
 
+## Reads per sample:
+echo "sample reads adapter" > read_primer_counts.txt
+for f in ./00-RawData/*_R1_*.fastq.gz
+do
+    echo $f
+    echo `basename $f` `unpigz -c -p 50 $f | wc -l | awk '{ print $1/4 }'` `unpigz -c -p 50 $f | grep -c TCTTCTGCTTG` >> read_primer_counts.txt
+done
+
 ## This data is essentially random amplicon data, but the read length is too short to allow overlap in most cases. However, it isn't a good idea to trim either end because then the amplicons won't start/end in the same place.
 
 python 01-cleaning.py
@@ -62,8 +70,43 @@ multiqc -d ./03-sorted -i mappingQC -o 03-mapping_QC
  python 03-count_fragments.py > 03-count_fragments.log
 
 
-### Get one contig for visualization ###
-samtools merge -R DS571146:1-36395 ./04-example-contig/merged.bam ./03-sorted/*.bam
+### Get some example contigs for visualization ###
+
+# gDNA from fragmentation A:
+samtools view ./03-sorted/B2-FA_sorted.bam -o ./04-example-contig/B2-FA_gDNA_DS571146.bam DS571146:1-210398
+
+# Plasmid from Fragmentation A
+samtools view ./03-sorted/gLibA-A5_sorted.bam -o ./04-example-contig/glibA-A5_DS571146.bam DS571146:1-210398
+
+# gDNA from fragmentation B:
+samtools view ./03-sorted/D10_FB-1_sorted.bam -o ./04-example-contig/D10_FB-1_DS571146.bam  DS571146:1-210398
+
+# plasmid amplicon from fragmentation B:
+samtools view ./03-sorted/F1_LibB1-1_sorted.bam -o ./04-example-contig/F1_LibB1-1_DS571146.bam DS571146:1-210398
+
+# gDNA from fragmentation C:
+samtools view ./03-sorted/B4-FC_sorted.bam -o ./04-example-contig/B4-FC_DS571146.bam DS571146:1-210398
+
+# plasmid amplicon from fragmentation C:
+samtools view ./03-sorted/C1-LibC1_sorted.bam -o ./04-example-contig/C1-LibC1_DS571146.bam DS571146:1-210398
+
+# plasmid F10, F11 and F12 have strange mapping results:
+samtools view ./03-sorted/F10_LibB4-1_sorted.bam -o ./04-example-contig/F10_LibB4-1_DS571146.bam DS571146:1-210398
+
+
+Observations:
+    Fragmentation A:
+        gDNA - Fairly uniform coverage across most of the contig.
+        Plasmid - only ~5 total sites retained
+    Fragmentation B:
+        gDNA - again, fairly uniform coverage across the contig
+        Plasmid - not as uniform as gDNA, but much of the plasmid is covered
+    Fragmentation C:
+        gDNA - Lower sequencing depth, but coverage is fairly uniform
+        Plasmid - Much more selective, maybe around 35-40 total sites.
+
+
+
 
 from Bio import SeqIO
 outf = open('./04-example-contig/DS571146.fasta', 'w')
@@ -73,3 +116,13 @@ for rec in SeqIO.parse('./Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta
         break
 
 
+## Gene coverage and mapping depth:
+analysis-depth.txt
+
+Rsubread looks like it allows definition of overlap size and also strandedness, it should be perfect.
+http://bioconductor.org/packages/release/bioc/manuals/Rsubread/man/Rsubread.pdf
+
+
+mkdir 03-coverage_analysis
+module load R/3.6.1
+Rscript -e "rmarkdown::render('./03-coverage_analysis/03-coverage_analysis.RMD')"
