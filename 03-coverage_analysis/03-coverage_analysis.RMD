@@ -7,6 +7,11 @@ fig_width: 8
 fig_height: 10
 ---
 
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
 ```{r setup}
 #install.packages("data.table")
 #install.packages("tidyverse")
@@ -69,7 +74,7 @@ plotSummaries = function(fcount, count_method, mdata){
 
     ncidx = order(rowSums(gcounts == 0), decreasing=T)
     pheatmap(log2(gcounts[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
-        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=7)
+        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=6)
     
 }
 
