@@ -37,7 +37,11 @@ plotSummaries = function(fcount, count_method, mdata){
     df = data.frame(df, readcount[match(df$Sample, readcount$Sample), ])
     df = df[df$Sample != 'Undetermined', ]
 
-    # How does gene coverage correspond to mapping depth?
+    kable(df) %>%
+    kable_styling("striped", full_width = F) %>%
+    row_spec(0, angle = 0)
+
+    cat("### How does gene coverage correspond to mapping depth?\n")
     ggplot(df, aes(y=CoveredGenes, x=reads, color=Fragmented.gDNA, shape=Type, label=Sample) ) + 
         geom_point(size=2) + 
         geom_hline(yintercept = 8333, size=1, color = 'tan2')+
@@ -47,6 +51,7 @@ plotSummaries = function(fcount, count_method, mdata){
         ylab('Genes covered by at least one read with \u2265 27bp overlap')
 
     # What sort of per-gene coverage is there?
+    cat("### What is the distribution of number of reads mapped per gene?\n")
     counts_stacked = data.frame(stack(fcount$counts[,colnames(fcount$counts) != 'Undetermined.bam']))
     counts_stacked$col = gsub('.bam', '', counts_stacked$col)
     counts_stacked$Fragmented.gDNA = mdata$Fragmented.gDNA[match(counts_stacked$col, mdata$Sample)]
@@ -60,7 +65,7 @@ plotSummaries = function(fcount, count_method, mdata){
     xlab('') + 
     ylab('Read Count')
     
-    # 
+    cat("### What is read coverage like across all genes, and do samples cluster by prep?\n")
     gcounts = fcount$counts[,colnames(fcount$counts) != 'Undetermined.bam']
     colnames(gcounts) = gsub('.bam', '', colnames(gcounts))
     anncol = mdata[,c('Fragmented.gDNA', 'Type')]
@@ -68,10 +73,11 @@ plotSummaries = function(fcount, count_method, mdata){
     pheatmap(log2(gcounts+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
         cluster_rows=F, scale='none',annotation_col=anncol, fontsize=7 )
 
-    # Are any genes not covered generally?
+    cat("### How consistently are genes targeted across samples?\n")
     barplot(table(rowSums(gcounts > 0)), main="Consistency of gene coverage", 
         ylab='Number of Genes', xlab="Number of samples genes are targeted in")
 
+    cat("### Are any genes not covered in most/all samples?\n")
     ncidx = order(rowSums(gcounts == 0), decreasing=T)
     pheatmap(log2(gcounts[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
         cluster_rows=F, scale='none', annotation_col=anncol, fontsize=6)
