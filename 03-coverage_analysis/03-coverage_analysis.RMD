@@ -1,8 +1,10 @@
 ---
-title: "Coverage Analysis: Entamoeba histolytica knockout libraries
+title: "Coverage Analysis: Entamoeba histolytica knockout libraries"
 author: "Sam Hunter"
-date: "`r format(Sys.time(), '%d %B, %Y')`""
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
+fig_width: 6
+fig_height: 8
 ---
 
 ```{r setup}
@@ -153,13 +155,13 @@ plotSummaries(unstranded_counts, "reverse", mdata)
 ```{r ReadData}
 
 # Try reading with data.table:
-dtb = fread('03_fragments_profile.tsv')
+# dtb = fread('03_fragments_profile.tsv')
 # Order by contig and position:
-dtb = dtb[order(R1contig, R1start)]
+# dtb = dtb[order(R1contig, R1start)]
 
 # Get contig lengths:
-clengths = fasta.seqlengths("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta")
-names(clengths) = sapply(strsplit(names(clengths), ' | '), '[', 1)
+# clengths = fasta.seqlengths("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta")
+# names(clengths) = sapply(strsplit(names(clengths), ' | '), '[', 1)
 
 
 ```
