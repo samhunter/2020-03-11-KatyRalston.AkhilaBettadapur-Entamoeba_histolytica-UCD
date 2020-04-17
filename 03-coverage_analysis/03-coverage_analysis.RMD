@@ -1,0 +1,165 @@
+---
+title: "Coverage Analysis: Entamoeba histolytica knockout libraries
+author: "Sam Hunter"
+date: "`r format(Sys.time(), '%d %B, %Y')`""
+output: html_document
+---
+
+```{r setup}
+#install.packages("data.table")
+#install.packages("tidyverse")
+
+# library(data.table)
+# library(tidyverse)
+# library(pheatmap)
+library(kableExtra)
+library(Biostrings)
+library(Rsubread)
+library(cowplot)
+library(readr)
+library(ggplot2)
+library(pheatmap)
+
+
+plotSummaries = function(fcount, count_method, mdata){
+    df = data.frame(Sample = gsub('.bam', '', colnames(fcount$stat)[2:ncol(fcount$stat)]),
+        AssignedReads = unlist(fcount$stat[fcount$stat$Status == 'Assigned', 2:ncol(fcount$stat), ]),
+        CoveredGenes = colSums(fcount$counts>0)
+                )
+    df = data.frame(df, mdata[match(df$Sample, mdata$Sample), ])                
+    df = data.frame(df, readcount[match(df$Sample, readcount$Sample), ])
+    df = df[df$Sample != 'Undetermined', ]
+
+    # How does gene coverage correspond to mapping depth?
+    ggplot(df, aes(y=CoveredGenes, x=reads, color=Fragmented.gDNA, shape=Type, label=Sample) ) + 
+        geom_point(size=2) + 
+        geom_hline(yintercept = 8333, size=1, color = 'tan2')+
+        ggtitle(paste("Coverage in", count_method, "read orientation")) +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        xlab('Reads Sequenced') + 
+        ylab('Genes covered by at least one read with \u2265 27bp overlap')
+
+    # What sort of per-gene coverage is there?
+    counts_stacked = data.frame(stack(fcount$counts[,colnames(fcount$counts) != 'Undetermined.bam']))
+    counts_stacked$col = gsub('.bam', '', counts_stacked$col)
+    counts_stacked$Fragmented.gDNA = mdata$Fragmented.gDNA[match(counts_stacked$col, mdata$Sample)]
+
+    ggplot(counts_stacked) + 
+    geom_boxplot(aes(x=col, y=value, fill=Fragmented.gDNA))+
+    scale_y_continuous(limits = c(0, 100)) +
+    theme(axis.text.x = element_text(angle = 90)) +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    ggtitle("Reads mapped per gene") +
+    xlab('') + 
+    ylab('Read Count')
+    
+    # 
+    gcounts = fcount$counts[,colnames(fcount$counts) != 'Undetermined.bam']
+    colnames(gcounts) = gsub('.bam', '', colnames(gcounts))
+    anncol = mdata[,c('Fragmented.gDNA', 'Type')]
+    rownames(anncol) = mdata$Sample
+    pheatmap(log2(gcounts+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
+        cluster_rows=F, scale='none',annotation_col=anncol )
+
+    # Are any genes not covered generally?
+    barplot(table(rowSums(gcounts > 0)), main="Consistency of gene coverage", 
+        ylab='Number of Genes', xlab="Number of samples genes are targeted in")
+
+    ncidx = order(rowSums(gcounts == 0), decreasing=T)
+    pheatmap(log2(gcounts[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
+        cluster_rows=F, scale='none', annotation_col=anncol)
+    
+}
+
+```
+
+```{r CountReads}
+# Get sequenced read counts:
+readcount = read.table('../read_primer_counts.txt', header=T, as.is=T, sep=' ')
+readcount$Sample = gsub('-|_', '.', sapply(strsplit(readcount$sample, '_S'), '[', 1))
+
+# Get sample metadata and setup a standard SampleID
+mdata = read.table("../SampleMetaData.csv", header=T, as.is=T, sep='\t')
+mdata$Sample = gsub('-|_', '.', mdata$FileID)
+
+
+bams = dir('../02-mapped/', pattern='*.bam', full.names=T)
+gff = '../Reference/AmoebaDB-46_EhistolyticaHM1IMSS.gff'
+ann = read.table(gff, header=F, as.is=T, sep='\t', quote='', comment.char='#')
+ann = ann[ann$V3 == 'gene',]
+ann$gene = gsub('ID=', '', sapply(strsplit(ann$V9, ';'), '[', 1))
+
+forward_stranded_counts = featureCounts(bams, annot.ext = gff, 
+    isGTFAnnotationFile=T, 
+    GTF.attrType='ID',
+    GTF.featureType='gene',
+    minOverlap=27,
+    allowMultiOverlap=TRUE,
+    countMultiMappingReads=TRUE,
+    strandSpecific = 1,  #Only reads where R1 is forward W.R.T. the transcript are counted
+    isPairedEnd = TRUE,
+    nthreads = 7,
+    useMetaFeatures = TRUE     #Counts should be summarized by gene
+)
+
+reverse_stranded_counts = featureCounts(bams, annot.ext = gff, 
+    isGTFAnnotationFile=T, 
+    GTF.attrType='ID',
+    GTF.featureType='gene',
+    minOverlap=27,
+    allowMultiOverlap=TRUE,
+    countMultiMappingReads=TRUE,
+    strandSpecific = 2,  #Only reads where R1 is reverse W.R.T. the transcript are counted
+    isPairedEnd = TRUE,
+    nthreads = 7,
+    useMetaFeatures = TRUE     #Counts should be summared by gene
+)
+
+
+unstranded_counts = featureCounts(bams, annot.ext = gff, 
+    isGTFAnnotationFile=T, 
+    GTF.attrType='ID',
+    GTF.featureType='gene',
+    minOverlap=27,
+    allowMultiOverlap=TRUE,
+    countMultiMappingReads=TRUE,
+    strandSpecific = 0,     # All reads overlapping 
+    isPairedEnd = TRUE,
+    nthreads = 7,
+    useMetaFeatures = TRUE     #Counts should be summared by gene
+)
+
+
+```
+
+## Plots for forward-read coverage counts:
+```{r forward}
+plotSummaries(forward_stranded_counts, "forward", mdata)
+```
+
+## Plots for reverse-read coverage counts:
+```{r reverse}
+plotSummaries(reverse_stranded_counts, "reverse", mdata)
+```
+
+
+## Plots for bi-directional read coverage counts:
+```{r reverse}
+plotSummaries(unstranded_counts, "reverse", mdata)
+
+```
+
+
+```{r ReadData}
+
+# Try reading with data.table:
+dtb = fread('03_fragments_profile.tsv')
+# Order by contig and position:
+dtb = dtb[order(R1contig, R1start)]
+
+# Get contig lengths:
+clengths = fasta.seqlengths("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta")
+names(clengths) = sapply(strsplit(names(clengths), ' | '), '[', 1)
+
+
+```
