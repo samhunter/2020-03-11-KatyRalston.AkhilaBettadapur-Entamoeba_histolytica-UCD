@@ -61,7 +61,7 @@ plotSummaries = function(fcount, count_method, mdata){
     anncol = mdata[,c('Fragmented.gDNA', 'Type')]
     rownames(anncol) = mdata$Sample
     pheatmap(log2(gcounts+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
-        cluster_rows=F, scale='none',annotation_col=anncol )
+        cluster_rows=F, scale='none',annotation_col=anncol, fontsize=9 )
 
     # Are any genes not covered generally?
     barplot(table(rowSums(gcounts > 0)), main="Consistency of gene coverage", 
@@ -69,13 +69,13 @@ plotSummaries = function(fcount, count_method, mdata){
 
     ncidx = order(rowSums(gcounts == 0), decreasing=T)
     pheatmap(log2(gcounts[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
-        cluster_rows=F, scale='none', annotation_col=anncol)
+        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=8)
     
 }
 
 ```
 
-```{r CountReads}
+```{r CountReads, results="hide"}
 # Get sequenced read counts:
 readcount = read.table('../read_primer_counts.txt', header=T, as.is=T, sep=' ')
 readcount$Sample = gsub('-|_', '.', sapply(strsplit(readcount$sample, '_S'), '[', 1))
