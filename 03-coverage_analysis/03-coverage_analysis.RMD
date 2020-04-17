@@ -48,7 +48,7 @@ plotSummaries = function(fcount, count_method, mdata){
     kable_styling("striped", full_width = F) %>%
     row_spec(0, angle = 0))
 
-    cat("### How does gene coverage correspond to mapping depth?\n")
+    cat("### How does gene coverage correspond to sequencing depth?\n")
     cat("<br>")
 
     gp1 = ggplot(df, aes(y=CoveredGenes, x=reads, color=Fragmented.gDNA, shape=Type, label=Sample) ) + 
@@ -100,7 +100,7 @@ plotSummaries = function(fcount, count_method, mdata){
 
     cat("### Are any genes not covered in most/all samples?\n")
     ncidx = order(rowSums(gcounts == 0), decreasing=T)
-    pheatmap(log2(gcounts[ncidx,][1:1000,] + 1), main="Log2 read coverage, 50 lowest covered",
+    pheatmap(log2(gcounts[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
         cluster_rows=F, scale='none', annotation_col=anncol, fontsize=6)
     
 }
