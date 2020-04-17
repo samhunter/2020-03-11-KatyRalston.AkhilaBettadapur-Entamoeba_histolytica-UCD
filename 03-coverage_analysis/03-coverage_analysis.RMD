@@ -3,8 +3,8 @@ title: "Coverage Analysis: Entamoeba histolytica knockout libraries"
 author: "Sam Hunter"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
-fig_width: 6
-fig_height: 8
+fig_width: 8
+fig_height: 10
 ---
 
 ```{r setup}
@@ -61,7 +61,7 @@ plotSummaries = function(fcount, count_method, mdata){
     anncol = mdata[,c('Fragmented.gDNA', 'Type')]
     rownames(anncol) = mdata$Sample
     pheatmap(log2(gcounts+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
-        cluster_rows=F, scale='none',annotation_col=anncol, fontsize=9 )
+        cluster_rows=F, scale='none',annotation_col=anncol, fontsize=7 )
 
     # Are any genes not covered generally?
     barplot(table(rowSums(gcounts > 0)), main="Consistency of gene coverage", 
@@ -69,7 +69,7 @@ plotSummaries = function(fcount, count_method, mdata){
 
     ncidx = order(rowSums(gcounts == 0), decreasing=T)
     pheatmap(log2(gcounts[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
-        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=8)
+        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=7)
     
 }
 
