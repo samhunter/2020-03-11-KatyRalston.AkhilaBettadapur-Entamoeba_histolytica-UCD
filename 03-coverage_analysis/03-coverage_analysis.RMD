@@ -104,6 +104,12 @@ forward_stranded_counts = featureCounts(bams, annot.ext = gff,
     useMetaFeatures = TRUE     #Counts should be summarized by gene
 )
 
+gcounts = forward_stranded_counts$counts[, 1:39]
+colnames(gcounts) = gsub('.bam', '', colnames(gcounts))
+fscann = cbind(ann[match(rownames(gcounts), ann$gene), ], gcounts)
+write.table(fscann, file='forward_stranded_read_counts_by_gene.tsv', sep='\t', row.names=F, col.names=T)
+
+
 reverse_stranded_counts = featureCounts(bams, annot.ext = gff, 
     isGTFAnnotationFile=T, 
     GTF.attrType='ID',
@@ -116,6 +122,11 @@ reverse_stranded_counts = featureCounts(bams, annot.ext = gff,
     nthreads = 7,
     useMetaFeatures = TRUE     #Counts should be summared by gene
 )
+
+gcounts = forward_stranded_counts$counts[, 1:39]
+colnames(gcounts) = gsub('.bam', '', colnames(gcounts))
+rscann = cbind(ann[match(rownames(gcounts), ann$gene), ], gcounts)
+write.table(rscann, file='reverse_stranded_read_counts_by_gene.tsv', sep='\t', row.names=F, col.names=T)
 
 
 unstranded_counts = featureCounts(bams, annot.ext = gff, 
@@ -130,6 +141,10 @@ unstranded_counts = featureCounts(bams, annot.ext = gff,
     nthreads = 7,
     useMetaFeatures = TRUE     #Counts should be summared by gene
 )
+gcounts = unstranded_counts$counts[, 1:39]
+colnames(gcounts) = gsub('.bam', '', colnames(gcounts))
+uscann = cbind(ann[match(rownames(gcounts), ann$gene), ], gcounts)
+write.table(uscann, file='unstranded_read_counts_by_gene.tsv', sep='\t', row.names=F, col.names=T)
 
 
 ```
@@ -146,7 +161,7 @@ plotSummaries(reverse_stranded_counts, "reverse", mdata)
 
 
 ## Plots for bi-directional read coverage counts:
-```{r reverse}
+```{r unstranded}
 plotSummaries(unstranded_counts, "reverse", mdata)
 
 ```
