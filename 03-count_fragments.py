@@ -190,27 +190,27 @@ bams = glob("./02-mapped/*.bam")
 # intervals is a dict with contig as key, each contig is a dict with [+,-] as keys, containing intervaltrees
 # each interval within the intervaltree contains a counter with counts by sample for that interval
 fragments = {}  # key is contig_start_stop_orientation, values are Counters
+counters = {} # holds per-sample statistics for later reporting
 for bam in bams:
-    i = 0
-    start = time.time()
+    starttime = time.time()
     cmd = "samtools view " + bam
     h = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     s = bam.split('/')[-1].replace('.bam', '')
     print("Processing file ", bam)
     reads = {}  # store reads temporarily
     sampleIntervals = {} # temporarily store intervals for this sample only
+    counters[s] = Counter()
     #sample_intervals = {} # {"sampleID":{"contig":{"-":IntervalTree(), "+":IntervalTree()}}}
     junkyPairs = Counter()
-    counters = Counter()
     for line in h.stdout:
         store = False
         retval = None
         if line[0] != "@" and len(line.strip().split()) > 2:
-            counters["lines"] += 1
+            counters[s]["lines"] += 1
             line2 = line.strip().split()
             # Skip if mate is mapped to another contig:
             if line2[6] != '=' and line2[2] != line[6]: 
-                counters['multicontigs'] += 1
+                counters[s]['multicontigs'] += 1
                 continue
             qname = line2[0].strip()  # readID
             rname = line2[2]  # reference sequence name (contig)
@@ -218,27 +218,27 @@ for bam in bams:
             #rname = r1pos = rnext = r2pos = r1orientation = None
             # if both mates are mapped and not secondary alignment:
             if (flag & 0x1) and not (flag & 0x4) and not (flag & 0x8) and not (flag & 0x100):
-                counters['mappedPairs'] += 1
+                counters[s]['mappedPairs'] += 1
                 if flag & 0x40:  # Read1
                     #Store read1 for future processing:
-                    counters['R1proper'] += 1
+                    counters[s]['R1proper'] += 1
                     if qname not in reads: 
                         reads[qname] = {}
                         reads[qname]['R1'] = line2
                     else:
-                        counters['r1order'] +=1
+                        counters[s]['r1order'] +=1
                         print("read1 %s out of order" % qname)
                         continue
                 # R2 where both mates are mapped to one or more contigs:
                 elif flag & 0x80:  # Read2
-                    counters['R2proper'] += 1
+                    counters[s]['R2proper'] += 1
                     if qname in reads:
                         reads[qname]['R2'] = line2
                         retval = process_pair(reads[qname])
                         del reads[qname]
                     else:
                         print("read2 %s out of order" % qname)
-                        counters['r2order'] +=1
+                        counters[s]['r2order'] +=1
                         continue
                 # TODO: refactor the following, it is ugly and could be much cleaner
                 # Finally deal with results and store values:
@@ -249,13 +249,12 @@ for bam in bams:
                     stop = retval['stop']
                     k = '_'.join( (rname, str(start), str(stop), orientation))
                     if retval['interval'] is False: # Case 1, junky read, save for later
-                        counters['junkyPair'] += 1
+                        counters[s]['junkyPair'] += 1
                         junkyPairs[k] += 1
                         store = False
                     else:  # Case 2, good pair, store/count interval
                         # Count in all-samples counter:
-                        if k not in fragments:
-                            counters['fragments'] += 1
+                        if k not in fragments:                            
                             fragments[k] = Counter()
                         fragments[k][s] += 1
                         # Add to sample intervals:
@@ -264,9 +263,9 @@ for bam in bams:
                         sampleIntervals[rname].add(Interval(start,stop, orientation))
                         retval = None
             else:
-                counters['discard'] += 1
+                counters[s]['discard'] += 1
                     
-    # Write sample SAF from sampleIntervals:
+    # Write sample SAF from sampleIntervals (for Rsubread):
     outf = open(f"./03-counts/{s}.SAF", 'w')
     fieldnames = ["GeneID", "Chr", "Start", "End", "Strand"]
     outfw = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
@@ -282,10 +281,11 @@ for bam in bams:
             out['End'] = ito.end
             out['Strand'] = ito.data
             outfw.writerow(out)
+            counters[s]['fragments'] += 1
     outf.flush()
     outf.close()
 
-    # Write sample GFF from sampleIntervals:
+    # Write sample GFF from sampleIntervals (for visualization):
     outf = open(f"./03-counts/{s}.gff", 'w')
     fieldnames = ["seqname", "source", "feature", "start", "end", "score", "strand", "frame", "attribute"]
     outfw = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames, quoting=csv.QUOTE_NONE, escapechar='')
@@ -309,88 +309,59 @@ for bam in bams:
     outf.close()
 
     # Process all of the crappy stored reads for counts:
-    for k,v in junkyPairs.iteritems():
+    for k,v in junkyPairs.items():
         # Find overlaps, increment counters
+        contig, start, stop, orientation = k.split('_')
+        start = int(start)
+        stop = int(stop)
+        best = {'interval':None, "overlap":0}
+        if contig not in sampleIntervals: continue
+        for frag in sampleIntervals[contig][start:stop]:
+            if frag.data == orientation:
+                overlap = len(set(range(frag.begin, frag.end)).intersection(set(range(start,stop))))
+                if overlap > best['overlap']:
+                    best['interval'] = frag
+                    best['overlap'] = overlap
+        if best['interval'] is not None:
+            k = '_'.join( (contig, str(best['interval'].begin), str(best['interval'].end), orientation))
+            fragments[k][s] += 1
 
-
-
-                qname = line2[0].split("#")[0]  # read ID
-                
-                r1pos = line2[3]
-                r1mapq = line2[4]
-                cigar = line2[5]
-                r2pos = line2[7]
-                tlen = int(line2[8])  # observed template length
-                if line2[6] == '=': rnext = rname
-                else: rnext = line2[6]
-                
-                
-            # Note that there is a little bit of a problem where soft-clipped reads at the edge of contigs are not
-            # counted correctly, map position is always 1 for these.
-            # Get fragments, where only R1 is mapped but R2 is not:
-            # elif ((flag & 0x1) and not (flag & 0x4) and (flag & 0x8) and not (flag & 0x100) and (flag & 0x40)):
-            #     rname = line2[2]
-            #     r1pos = line2[3]
-            #     r1mapq = line2[4]
-            #     if (flag & 0x10): r1orientation ='-'
-            #     else: r1orientation ='+'                
-            #     rnext = "Unmapped"
-            #     r2pos = '0'
-            #     store = True
-            #Finally get reads where R2 is mapped, but R1 is not:
-            # orientation has to be flipped here
-            # elif ((flag & 0x1) and not (flag & 0x4) and (flag & 0x8) and not (flag & 0x100) and (flag & 0x80)):
-            #     rname = line2[2]
-            #     r1pos = '0'
-            #     r2mapq = line2[4]
-            #     if (flag & 0x10): r1orientation ='+'
-            #     else: r1orientation ='-'                
-            #     rnext = "Unmapped"
-            #     r2pos = line2[3]
-            #     store = True
-            if store:
-                key = '_'.join([rname, r1pos, rnext, r2pos, r1orientation])
-                if key not in fragments:
-                    fragments[key] = Counter()
-                fragments[key][s] += 1
-    txt = "Finished processing " + bam + " %s records, %s/second, total keys: %s" % (i, i/(time.time() - start), len(fragments))
-    txt += " keys/rec %s" % round(len(fragments)/i, 3)
+    txt = f"{bam.split('/')[-1]}"
+    for k in counters[s].keys():
+        txt += f"\t{k}:{counters[s][k]}"
+    txt += f"\tlines/s:{round(counters[s]['lines']/(time.time() - starttime),1)}"
     print(txt)
 
-
-## Write output in a couple of formats:
+## Write total fragment counts out in tsv:
 outf = open("./03-counts/03_fragments_profile.tsv", 'w')
-fieldnames = ["R1contig", "R1start", "R2contig", "R2start", "orientation"] + list(map(lambda x: x.split('/')[-1].replace(".bam", ''), bams))
+fieldnames = ["contig", "start", "stop", "orientation"] + list(map(lambda x: x.split('/')[-1].replace(".bam", ''), bams))
 outfw = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
 outfw.writeheader()
 
 for key in fragments.keys():
     key2 = key.split('_')
     out = {}
-    out['R1contig'] = key2[0]
-    out['R1start'] = key2[1]
-    out['R2contig'] = key2[2]
-    out['R2start'] = key2[3]
-    out['orientation'] = key2[4]
+    out['contig'] = key2[0]
+    out['start'] = key2[1]
+    out['stop'] = key2[2]
+    out['orientation'] = key2[3]
     for s in map(lambda x: x.split('/')[-1].replace(".bam", ''), bams):
         out[s] = fragments[key][s]
     outfw.writerow(out)
-    outf.flush()
+outf.flush()
 outf.close()
 
+## Write out counters
+outf = open("./03-counts/sample_statistics.tsv", 'w')
+fieldnames = ['sample'] + list(counters[s].keys())
+outfw = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
+outfw.writeheader()
 
-## Try to infer actual fragments 
-# Sort by R1contig, R1start
-putative_fragments = []
-for key, item in fragments.iteritems:
-    support = 0
-    for i in items.values():
-        if i > 1:
-            support += 1
-    key2 = key.split('_')
-
-
-s = sorted(fragments.keys()[0:50], key=lambda x:itemgetter(0,1,,x.split('_')[0:2])
-
-
-
+for s in counters.keys():
+    out = {}
+    out['sample'] = s
+    for k in counters[s].keys():
+        out[k] = counters[s][k]
+    outfw.writerow(out)
+outf.flush()
+outf.close()
