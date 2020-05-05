@@ -6,7 +6,7 @@ Questions:
     1) How does each sample look? 
 
 
-Remote working: /share/biocore/projects/Ralston_K_UCD/sh-analysis
+Remote working: c
 
 
 RawData:
@@ -67,6 +67,7 @@ multiqc -d ./03-sorted -i mappingQC -o 03-mapping_QC
 
 
  # Count Unique Fragments:
+ # pip3 install intervaltree
  python 03-count_fragments.py > 03-count_fragments.log
 
 

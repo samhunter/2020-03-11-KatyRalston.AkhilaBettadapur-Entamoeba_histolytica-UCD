@@ -1,0 +1,148 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup}
+#install.packages("data.table")
+#install.packages("tidyverse")
+
+library(data.table)
+library(tidyverse)
+library(pheatmap)
+library(kableExtra)
+library(Biostrings)
+
+```
+
+
+```{r ReadData}
+
+# Try reading with data.table:
+dtb = fread('03_fragments_profile.tsv')
+# Order by contig and position:
+dtb = dtb[order(R1contig, R1start)]
+
+# Get contig lengths:
+clengths = fasta.seqlengths("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta")
+names(clengths) = sapply(strsplit(names(clengths), ' | '), '[', 1)
+
+
+```
+
+### How reads were mapped per sample?
+```{r num fragments}
+reads_per_sample = tibble(Sample = colnames(dtb[,6:ncol(dtb)]),
+                    reads_per_sample = colSums(dtb[,6:ncol(dtb)]))
+reads_per_sample = arrange(reads_per_sample, Sample)
+reads_per_sample = filter(reads_per_sample, Sample != 'Undetermined')
+
+options(scipen=10)
+ggplot(data=reads_per_sample, aes(x=Sample, y=reads_per_sample)) +
+    geom_bar(stat='identity', color='black', fill='grey') +
+    theme(axis.text.x = element_text(angle = 90)) +
+    ggtitle("Number of reads mapped") +
+    ylab("Reads mapped per sample")
+
+```
+
+
+### How many fragments were there per sample? How many are supported by at least 2 reads?
+```{r num fragments}
+# How many fragments per sample?
+fragments_per_sample = colSums(dtb[,6:ncol(dtb)]>0)
+
+
+# How many fragments per sample with at least 2 reads?
+fragments_per_sample2 = colSums(dtb[,6:ncol(dtb)]>1)
+
+fragments_per_sample3 = colSums(dtb[,6:ncol(dtb)]>2)
+
+
+
+
+tmp = tibble(Sample = names(fragments_per_sample),
+                 Fragments_per_sample = fragments_per_sample, 
+                 Fragments_per_sample2 = fragments_per_sample2)
+
+tmp2 = pivot_longer(tmp, cols = c("Fragments_per_sample","Fragments_per_sample2"),
+                        names_to=c("Support"))
+
+tmp3 = mutate(tmp2, Support = case_when(
+            Support == 'Fragments_per_sample' ~ '1+',
+            Support == 'Fragments_per_sample2' ~ '2+',
+            ))
+tmp3 = arrange(tmp3, Sample)
+tmp3 = filter(tmp3, Sample != 'Undetermined')
+
+options(scipen=10)
+ggplot(data=tmp3, aes(x=Sample, y=value, fill=Support)) +
+    geom_bar(stat='identity', position=position_dodge()) +
+    theme(axis.text.x = element_text(angle = 90)) +
+    scale_fill_manual(values=c('#999999','#E69F00')) +
+    ggtitle("Number of unique fragments") +
+    ylab("Unique Fragments")
+
+```
+
+```{r }
+# Was sequencing deep enough? What is the distribution of counts by sample (discarding 0's):
+samples =setdiff(colnames(dtb[,6:ncol(dtb)]), 'Undetermined')
+b = colnames(dtb[,1:5])
+
+dtb2 = melt(dtb, id.vars=b, measure.vars=samples)[value > 0,]
+
+ggplot(data=dtb2, aes(x=value, color=variable)) +
+    geom_density() + 
+    scale_x_continuous(trans='log2')+
+    xlab("Log2 reads per fragment")
+
+```
+
+
+```{r}
+dtb[R1contig == 'DS571146' | R2contig == 'DS571146', .N]
+
+
+```
+
+
+```{r}
+s = dtb[R1contig == 'DS571146', list(`R1contig`, `R1start`, `R2contig`, `R2start`, `orientation`, `gLibA-A5`)][`gLibA-A5`>0]
+
+
+```
+
+
+
+summary_table = data.frame(Fragments= colSums(dtb[,6:ncol(dtb)]>0),
+                            summary(dtb[,6:ncol(dtb)]))
+
+
+
+kable(t.p10RevHc1) %>%
+  kable_styling("striped", full_width = F) %>%
+  row_spec(0, angle = 0)
+
+
+dtb.both.mapped = dtb[R1contig == R2contig]
+
+dtb.both.mapped = dtb.both.mapped[order(R1contig, apply(dtb.both.mapped[,c('R1start', 'R2start')], 1, min))]
+
+nrows =100
+ann_row = data.frame(dtb.both.mapped[1:nrows,c('R1contig', 'R1start')])
+rownames(ann_row) = paste('r', 1:nrows, sep='_')
+m = data.frame(dtb.both.mapped[1:nrows,6:ncol(dtb.both.mapped)])
+rownames(m) = paste('r', 1:nrows, sep='_')
+
+pheatmap(m, cluster_rows=F, annotation_row=ann_row)
+
+d = dist(t(dtb.both.mapped[,6:ncol(dtb.both.mapped)]))
+hc = hclust(d)
+
+# Try with readr:
+#tibl = read_tsv('03_fragments_profile.tsv')
+# 
+#m = dtb[,6:ncol(dtb)]
+#tmp = head(dtb.both.mapped)
+```

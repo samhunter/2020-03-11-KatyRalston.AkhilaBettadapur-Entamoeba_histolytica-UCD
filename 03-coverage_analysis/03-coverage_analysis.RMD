@@ -196,7 +196,7 @@ plotSummaries(reverse_stranded_counts, "reverse", mdata)
 
 ## Results for bi-directional read coverage counts:
 ```{r unstranded, results = 'asis', echo=FALSE}
-plotSummaries(unstranded_counts, "reverse", mdata)
+plotSummaries(unstranded_counts, "unstranded", mdata)
 
 ```
 
