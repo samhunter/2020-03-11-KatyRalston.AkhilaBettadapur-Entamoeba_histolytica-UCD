@@ -102,8 +102,6 @@ finalSDF = finalSDF[rowSums(finalSDF[,c('Final.gDNA', 'Final.Plasmid', 'Final.Pl
                                         'Final.plasmidB2', 'Final.plasmidB3', 'Final.plasmidB4')]) > 0, ]
 
 
-)
-
 ```
 
 
