@@ -19,7 +19,7 @@ knitr::opts_chunk$set(fig.width=10, fig.height=8, fig.path='Figs/',
 library(kableExtra)
 library(Biostrings)
 library(Rsubread)
-library(cowplot)
+#library(cowplot)
 library(readr)
 library(ggplot2)
 library(pheatmap)
@@ -67,6 +67,7 @@ dtbnc = dtb[,..tokeep]
 dim(dtbnc)
 # 3.1m
 # drop intervals with no count in remaining samples:
+datacolumns = colnames(dtbnc)[5:ncol(dtbnc)]
 dtbnc = dtbnc[rowSums(dtbnc[, ..datacolumns]) > 0]
 dim(dtbnc)
 #2.5m
