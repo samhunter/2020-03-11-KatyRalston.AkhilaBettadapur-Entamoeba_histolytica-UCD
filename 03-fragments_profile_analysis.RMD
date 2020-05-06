@@ -1,148 +1,320 @@
 ---
-title: "Untitled"
+title: "Fragment Analysis: Entamoeba histolytica knockout libraries"
+author: "Sam Hunter"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
+fig_width: 8
+fig_height: 10
 ---
 
-```{r setup}
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=8, fig.path='Figs/',
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r setup, include=FALSE}
 #install.packages("data.table")
 #install.packages("tidyverse")
 
-library(data.table)
-library(tidyverse)
-library(pheatmap)
 library(kableExtra)
 library(Biostrings)
+library(Rsubread)
+library(cowplot)
+library(readr)
+library(ggplot2)
+library(pheatmap)
+library(data.table)
+library(tidyverse)
 
+options(stringsAsFactors=F)
 ```
 
 
-```{r ReadData}
-
-# Try reading with data.table:
-dtb = fread('03_fragments_profile.tsv')
-# Order by contig and position:
-dtb = dtb[order(R1contig, R1start)]
-
+```{r ReadData, include=FALSE}
 # Get contig lengths:
 clengths = fasta.seqlengths("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta")
 names(clengths) = sapply(strsplit(names(clengths), ' | '), '[', 1)
 
+# Get calculated sample stats:
+sampleStats = read.table("sample_statistics.tsv", as.is=T, header=T, sep='\t')
+
+# Try reading with data.table:
+dtb = fread('03_fragments_profile.tsv')
+# Order by contig and position:
+dtb = dtb[order(contig, start)]
+
+### Data cleanup ###
+# First fix negative and 0 values for fragments on the edge:
+dtb$start[dtb$start < 1] = 1
+
+# Second, clean up any intervals that went off the edge of the contig but were soft clipped
+idx = dtb$stop > clengths[dtb$contig]
+dtb$stop[idx] = clengths[dtb$contig[idx]] 
+
+# Get sequenced read counts:
+readcount = read.table('../read_primer_counts.txt', header=T, as.is=T, sep=' ')
+readcount$Sample = gsub('-|_', '.', sapply(strsplit(readcount$sample, '_S'), '[', 1))
+
+# Get sample metadata and setup a standard SampleID
+mdata = read.table("../SampleMetaData.csv", header=T, as.is=T, sep='\t')
+mdata$Sample = gsub('-|_', '.', mdata$FileID)
+
+# Cleanup and summarize data:
+
+# 1) Drop all library C samples and Undetermined sample:
+tokeep = c("contig", "start", "stop", "orientation", mdata$FileID[mdata$Fragmented.gDNA != 'FC'])
+dtbnc = dtb[,..tokeep]
+dim(dtbnc)
+# 3.1m
+# drop intervals with no count in remaining samples:
+dtbnc = dtbnc[rowSums(dtbnc[, ..datacolumns]) > 0]
+dim(dtbnc)
+#2.5m
+
+# 2) Create object with summarized tech reps:
+# Note: GroupA --> Pilot, GroupB --> Final
+pilotSDF = data.frame(
+                contig = dtbnc$contig,
+                start = dtbnc$start,
+                stop = dtbnc$stop,
+                orientation = dtbnc$orientation,
+                Pilot.gDNA = rowSums(dtbnc[, .(`B1-FA`, `B2-FA`, `B3-FA`)]),
+                Pilot.Plasmid = rowSums(dtbnc[, .(`gLibA-A5`, `gLibA-A6`, `gLibA-A7`)])
+                ) 
+pilotSDF = pilotSDF[rowSums(pilotSDF[,c("Pilot.gDNA", "Pilot.Plasmid")]) > 0, ]
+
+finalSDF = data.frame(
+                contig = dtbnc$contig,
+                start = dtbnc$start,
+                stop = dtbnc$stop,
+                orientation = dtbnc$orientation,
+                Final.gDNA = rowSums(dtbnc[, .(`D10_FB-1`, `D11_FB-2`, `D12_FB-3`)]),
+                Final.Plasmid = rowSums(dtbnc[, .(`F1_LibB1-1`,`F2_LibB1-2`,`F3_LibB1-3`,
+                                                  `F4_LibB2-1`,`F5_LibB2-2`,`F6_LibB2-3`,
+                                                  `F7_LibB3-1`,`F8_LibB3-2`,`F9_LibB3-3`,
+                                                  `F10_LibB4-1`,`F11_LibB4-2`,`F12_LibB4-3`)]),
+                Final.PlasmidB1 = rowSums(dtbnc[, .(`F1_LibB1-1`,`F2_LibB1-2`,`F3_LibB1-3`)]),
+                Final.plasmidB2 = rowSums(dtbnc[, .(`F4_LibB2-1`,`F5_LibB2-2`,`F6_LibB2-3`)]),
+                Final.plasmidB3 = rowSums(dtbnc[, .(`F7_LibB3-1`,`F8_LibB3-2`,`F9_LibB3-3`)]),
+                Final.plasmidB4 = rowSums(dtbnc[, .(`F10_LibB4-1`,`F11_LibB4-2`,`F12_LibB4-3`)]))
+
+finalSDF = finalSDF[rowSums(finalSDF[,c('Final.gDNA', 'Final.Plasmid', 'Final.PlasmidB1', 
+                                        'Final.plasmidB2', 'Final.plasmidB3', 'Final.plasmidB4')]) > 0, ]
+
+
+)
 
 ```
 
-### How reads were mapped per sample?
-```{r num fragments}
-reads_per_sample = tibble(Sample = colnames(dtb[,6:ncol(dtb)]),
-                    reads_per_sample = colSums(dtb[,6:ncol(dtb)]))
-reads_per_sample = arrange(reads_per_sample, Sample)
-reads_per_sample = filter(reads_per_sample, Sample != 'Undetermined')
 
-options(scipen=10)
-ggplot(data=reads_per_sample, aes(x=Sample, y=reads_per_sample)) +
-    geom_bar(stat='identity', color='black', fill='grey') +
-    theme(axis.text.x = element_text(angle = 90)) +
-    ggtitle("Number of reads mapped") +
-    ylab("Reads mapped per sample")
+
+## Figure 1
+Q) Was there bias in the genomic fragmentation or in the fragments that were cloned into the library plasmid?
+
+```{r basecomposition, echo=FALSE}
+library(Biostrings)
+library(GenomicRanges)
+library(BSgenome)
+library(ggplot2)
+library(viridis)
+library(hrbrthemes)
+
+genome = readDNAStringSet("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta", 'fasta')
+names(genome) = sapply(strsplit(names(genome), " | "), '[', 1)
+
+genome.nucleotide.freq = oligonucleotideFrequency(DNAString(paste(as.character(genome), collapse='')), 1)
+genome.dinucleotide.freq = oligonucleotideFrequency(DNAString(paste(as.character(genome), collapse='')), 2)
+
+#Extract DNA from Pilot.gDNA fragments and calculate frequencies
+idx = pilotSDF$Pilot.gDNA > 0
+pilotDNA.GR = GRanges(seqnames = pilotSDF$contig[idx], count=pilotSDF$Pilot.gDNA[idx],
+     ranges=IRanges(start = pilotSDF$start[idx], end=pilotSDF$stop[idx]), seqlengths = clengths)
+pilotDNA.nucleotide.freq = oligonucleotideFrequency(DNAString(paste(
+                    as.character(getSeq(genome, pilotDNA.GR)), collapse='')), 1)
+pilotDNA.dinucleotide.freq = oligonucleotideFrequency(DNAString(paste(
+                    as.character(getSeq(genome, pilotDNA.GR)), collapse='')), 2)
+
+#Extract DNA from Pilot.Plasmid fragments and calculate frequencies
+idx = pilotSDF$Pilot.Plasmid > 0
+pilotPlasmid.GR = GRanges(seqnames = pilotSDF$contig[idx], count=pilotSDF$Pilot.gDNA[idx],
+     ranges=IRanges(start = pilotSDF$start[idx], end=pilotSDF$stop[idx]), seqlengths = clengths)
+pilotPlasmid.nucleotide.freq = oligonucleotideFrequency(DNAString(paste(
+                    as.character(getSeq(genome, pilotPlasmid.GR)), collapse='')), 1)
+pilotPlasmid.dinucleotide.freq = oligonucleotideFrequency(DNAString(paste(
+                    as.character(getSeq(genome, pilotPlasmid.GR)), collapse='')), 2)
+
+#Extract DNA from Final.gDNA fragments and calculate frequencies
+idx = finalSDF$Final.gDNA > 0
+finalDNA.GR = GRanges(seqnames = finalSDF$contig[idx], count=finalSDF$Final.gDNA[idx],
+     ranges=IRanges(start = finalSDF$start[idx], end=finalSDF$stop[idx]), seqlengths = clengths)
+finalDNA.nucleotide.freq = oligonucleotideFrequency(DNAString(paste(
+                    as.character(getSeq(genome, finalDNA.GR)), collapse='')), 1)
+finalDNA.dinucleotide.freq = oligonucleotideFrequency(DNAString(paste(
+                    as.character(getSeq(genome, finalDNA.GR)), collapse='')), 2)
+
+#Extract DNA from final.Plasmid fragments and calculate frequencies
+idx = finalSDF$Final.Plasmid > 0
+finalPlasmid.GR = GRanges(seqnames = finalSDF$contig[idx], count=finalSDF$Final.gDNA[idx],
+     ranges=IRanges(start = finalSDF$start[idx], end=finalSDF$stop[idx]), seqlengths = clengths)
+finalPlasmid.nucleotide.freq = oligonucleotideFrequency(DNAString(paste(
+                    as.character(getSeq(genome, finalPlasmid.GR)), collapse='')), 1)
+finalPlasmid.dinucleotide.freq = oligonucleotideFrequency(DNAString(paste(
+                    as.character(getSeq(genome, finalPlasmid.GR)), collapse='')), 2)
+
+# Build DF for ggplot:
+freq=c(genome.nucleotide.freq, pilotDNA.nucleotide.freq, pilotPlasmid.nucleotide.freq, 
+               finalDNA.nucleotide.freq, finalPlasmid.nucleotide.freq)
+s = factor(rep(c("Genome", "PilotDNA", "PilotPlasmid", "FinalDNA", "FinalPlasmid"), each=4), 
+    levels=c("Genome", "PilotDNA", "PilotPlasmid", "FinalDNA", "FinalPlasmid"))
+nucleotideFreq = data.frame(Sample=s, Base=names(freq), Freq=freq)
+
+ggplot(nucleotideFreq, aes(fill=Base, y=Freq, x=Sample)) +
+    geom_bar(position="fill", stat="identity") + scale_fill_viridis(discrete=TRUE) + theme_bw() +
+    xlab("") + ylab("Percent Base") + ggtitle("Nucleotide Frequency")
 
 ```
 
+```{r, echo=FALSE}
+freq=c(genome.dinucleotide.freq, pilotDNA.dinucleotide.freq, pilotPlasmid.dinucleotide.freq, 
+               finalDNA.dinucleotide.freq, finalPlasmid.dinucleotide.freq)
+s = factor(rep(c("Genome", "PilotDNA", "PilotPlasmid", "FinalDNA", "FinalPlasmid"), each=16), 
+    levels=c("Genome", "PilotDNA", "PilotPlasmid", "FinalDNA", "FinalPlasmid"))
+nucleotideFreq = data.frame(Sample=s, Dinucleotide=names(freq), Freq=freq)
 
-### How many fragments were there per sample? How many are supported by at least 2 reads?
-```{r num fragments}
-# How many fragments per sample?
-fragments_per_sample = colSums(dtb[,6:ncol(dtb)]>0)
-
-
-# How many fragments per sample with at least 2 reads?
-fragments_per_sample2 = colSums(dtb[,6:ncol(dtb)]>1)
-
-fragments_per_sample3 = colSums(dtb[,6:ncol(dtb)]>2)
-
-
-
-
-tmp = tibble(Sample = names(fragments_per_sample),
-                 Fragments_per_sample = fragments_per_sample, 
-                 Fragments_per_sample2 = fragments_per_sample2)
-
-tmp2 = pivot_longer(tmp, cols = c("Fragments_per_sample","Fragments_per_sample2"),
-                        names_to=c("Support"))
-
-tmp3 = mutate(tmp2, Support = case_when(
-            Support == 'Fragments_per_sample' ~ '1+',
-            Support == 'Fragments_per_sample2' ~ '2+',
-            ))
-tmp3 = arrange(tmp3, Sample)
-tmp3 = filter(tmp3, Sample != 'Undetermined')
-
-options(scipen=10)
-ggplot(data=tmp3, aes(x=Sample, y=value, fill=Support)) +
-    geom_bar(stat='identity', position=position_dodge()) +
-    theme(axis.text.x = element_text(angle = 90)) +
-    scale_fill_manual(values=c('#999999','#E69F00')) +
-    ggtitle("Number of unique fragments") +
-    ylab("Unique Fragments")
+ggplot(nucleotideFreq, aes(fill=Dinucleotide, y=Freq, x=Sample)) +
+    geom_bar(position="fill", stat="identity") + scale_fill_viridis(discrete=TRUE) + theme_bw() +
+    xlab("") + ylab("Percent DiNucleotide") + ggtitle("DiNucleotide Frequency")
 
 ```
 
-```{r }
-# Was sequencing deep enough? What is the distribution of counts by sample (discarding 0's):
-samples =setdiff(colnames(dtb[,6:ncol(dtb)]), 'Undetermined')
-b = colnames(dtb[,1:5])
+## Figure 2
+Q: Was there bias in PCR/sequencing analysis?
+There are too many fragments for a heatmap, so a boxplot might work
+```{r, echo=FALSE}
+# Build a heatmap showing coverage by fragment:
+# This is too big to show as a heatmap
+#pheatmap(log2(gcounts+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
+#        cluster_rows=F, scale='none',annotation_col=anncol, fontsize=7 )
 
-dtb2 = melt(dtb, id.vars=b, measure.vars=samples)[value > 0,]
-
-ggplot(data=dtb2, aes(x=value, color=variable)) +
-    geom_density() + 
-    scale_x_continuous(trans='log2')+
-    xlab("Log2 reads per fragment")
+# Maybe boxplot showing reads/interval:
+library(tidyr)
+samples = colnames(dtbnc)[5:ncol(dtbnc)]
+dtbncl = pivot_longer(dtbnc, cols=samples, names_to='Sample')
+dtbncl = dtbncl[dtbncl$value>0, ]
+tmp = c("FC"="none", "FA"="Pilot", "FB"="Final")
+dtbncl$Fragmentation = tmp[mdata$Fragmented.gDNA[match(dtbncl$Sample, mdata$FileID)]]
+dtbncl$Type = mdata$Type[match(dtbncl$Sample, mdata$FileID)]
+dtbncl$logReadCount = log2(dtbncl$value)
+ggplot(dtbncl, aes(x=Sample, y=logReadCount, fill=Type)) +
+    geom_boxplot() + theme_bw() + theme(axis.text.x = element_text(angle = 90)) +
+    ggtitle("Log2 read count per fragment")
 
 ```
 
-
+### Another boxplot with only samples from the Final set
 ```{r}
-dtb[R1contig == 'DS571146' | R2contig == 'DS571146', .N]
-
-
-```
-
-
-```{r}
-s = dtb[R1contig == 'DS571146', list(`R1contig`, `R1start`, `R2contig`, `R2start`, `orientation`, `gLibA-A5`)][`gLibA-A5`>0]
-
+dtbncl2 = dtbncl[dtbncl$Fragmentation == 'Final', ]
+ggplot(dtbncl2, aes(x=Sample, y=logReadCount, fill=Type)) +
+    geom_boxplot() + theme_bw() + theme(axis.text.x = element_text(angle = 90)) +
+    ggtitle("Log2 read count per fragment")
 
 ```
 
 
+## Figure Mapped read pairs vs number of fragments
+```{r nfragments, echo=FALSE}
+ss2 = data.frame(sampleStats, mdata[match(sampleStats$sample, mdata$FileID), ])
+ss2 = na.omit(ss2[ss2$Fragmented.gDNA != 'FC', ])
+tmp = c("FC"="none", "FA"="Pilot", "FB"="Final")
+ss2$Group = tmp[ss2$Fragmented.gDNA]
+ss2$log2Fragments = log2(ss2$fragments)
+ggplot(ss2, aes(x=mappedPairs, y=log2Fragments, color=Group, shape=Type)) + theme_bw() +
+    geom_point(size=4) + ggtitle("Fragments identified ") +
+    xlab("Sequencing Depth") + ylab("Log2 Fragments Identified")
 
-summary_table = data.frame(Fragments= colSums(dtb[,6:ncol(dtb)]>0),
-                            summary(dtb[,6:ncol(dtb)]))
-
-
-
-kable(t.p10RevHc1) %>%
-  kable_styling("striped", full_width = F) %>%
-  row_spec(0, angle = 0)
-
-
-dtb.both.mapped = dtb[R1contig == R2contig]
-
-dtb.both.mapped = dtb.both.mapped[order(R1contig, apply(dtb.both.mapped[,c('R1start', 'R2start')], 1, min))]
-
-nrows =100
-ann_row = data.frame(dtb.both.mapped[1:nrows,c('R1contig', 'R1start')])
-rownames(ann_row) = paste('r', 1:nrows, sep='_')
-m = data.frame(dtb.both.mapped[1:nrows,6:ncol(dtb.both.mapped)])
-rownames(m) = paste('r', 1:nrows, sep='_')
-
-pheatmap(m, cluster_rows=F, annotation_row=ann_row)
-
-d = dist(t(dtb.both.mapped[,6:ncol(dtb.both.mapped)]))
-hc = hclust(d)
-
-# Try with readr:
-#tibl = read_tsv('03_fragments_profile.tsv')
-# 
-#m = dtb[,6:ncol(dtb)]
-#tmp = head(dtb.both.mapped)
 ```
+
+
+## Figure 3
+Q: What are the sizes of the genomic fragments, and what are the sizes of the fragments 
+that were cloned into the library plasmid? Was there any bias in cloning (meaning 
+although there was a broader range of sizes in the genomic fragments, fragments of a narrower
+range of sizes were cloned)?
+
+```{r insertsize, echo=FALSE}
+library(tidyr)
+samples = colnames(dtbnc)[5:ncol(dtbnc)]
+dtbncl = pivot_longer(dtbnc, cols=samples, names_to='Sample')
+dtbncl = dtbncl[dtbncl$value>0, ]
+tmp = c("FC"="none", "FA"="Pilot", "FB"="Final")
+dtbncl$Fragmentation = factor(tmp[mdata$Fragmented.gDNA[match(dtbncl$Sample, mdata$FileID)]], levels=c("Pilot", "Final"))
+dtbncl$Type = mdata$Type[match(dtbncl$Sample, mdata$FileID)]
+dtbncl$Insert = dtbncl$stop - dtbncl$start
+
+ggplot(dtbncl, aes(x=Insert)) + 
+    geom_histogram(aes(y=..density.., fill=Fragmentation), binwidth=6, alpha=0.5, position="identity")+
+    geom_density(alpha=0.4, bw=1) + xlim(250, 750) +
+    facet_grid(Type ~ Fragmentation) + theme_bw() + 
+    theme(strip.text.y = element_text(size = 12, colour = "black"))+
+    theme(strip.text.x = element_text(size = 12, colour = "black"))+
+    scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9")) +
+    ggtitle("Fragment length distribution")
+
+```
+
+## Figure 4
+How much of the genome is covered by the fragments? (Visual representation)
+
+```{r coverage, echo=FALSE}
+library(karyoploteR)
+gff = '../Reference/AmoebaDB-46_EhistolyticaHM1IMSS.gff'
+ann = read.table(gff, header=F, as.is=T, sep='\t', quote='', comment.char='#')
+ann = ann[ann$V3 == 'gene',]
+ann$gene = gsub('ID=', '', sapply(strsplit(ann$V9, ';'), '[', 1))
+
+custom.genome = GRanges(seqnames = names(clengths), ranges = IRanges(start=rep(1, length(clengths)), end=clengths))
+custom.ann =GRanges(seqnames=ann$V1, ranges=IRanges(start=ann$V4, end=ann$V5), strand=ann$V7, mcols=data.frame(gene=ann$gene))
+#custom.genome = c(custom.genome, custom.ann)
+
+idx = finalSDF$Final.Plasmid > 0 & finalSDF$orientation == '+'
+custom.Fcoverage = GRanges(seqnames=finalSDF$contig[idx], 
+                  ranges=IRanges(start=finalSDF$start[idx], end=finalSDF$stop[idx]), 
+                  strand=finalSDF$orientation[idx])
+
+idx = finalSDF$Final.Plasmid > 0 & finalSDF$orientation == '-'
+custom.Rcoverage = GRanges(seqnames=finalSDF$contig[idx], 
+                  ranges=IRanges(start=finalSDF$start[idx], end=finalSDF$stop[idx]), 
+                  strand=finalSDF$orientation[idx])
+
+zoom.region = GRanges(seqnames="DS571145", ranges=IRanges(start=2000, end=100000))
+kp = plotKaryotype(custom.genome, chromosomes='DS571145', zoom=zoom.region, plot.type=2)
+#kpDataBackground(kp, data.panel = 1)
+kpAddBaseNumbers(kp, tick.dist=5000, add.units=T)
+kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"="darkgreen")[ann$V7])
+kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
+kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen', avoid.overlapping=T, num.layers=20)
+kpText(kp, chr=seqlevels(kp$genome), y=0.8, x=2000, data.panel="ideogram", col='black', label='Genes', cex=0.9, pos=4, clipping=F)
+kpText(kp, chr=seqlevels(kp$genome), y=0.5, x=1900, data.panel = 1, r0=0, r1=1, col="black", label="Forward Fragments", cex=0.8, pos=2, clipping=FALSE)
+kpText(kp, chr=seqlevels(kp$genome), y=0.5, x=1900, data.panel = 2, r0=0, r1=1, col="darkgreen", label="Reverse Fragments", cex=0.8, pos=2, clipping=FALSE)
+
+citation("karyoploteR")
+```
+
+```{r morecoverage}
+kp = plotKaryotype(custom.genome, plot.type=3, chrom=names(clengths)[1:10], main="Fragment coverage across 10 largest contigs")
+kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"="darkgreen")[ann$V7])
+kpAddBaseNumbers(kp, tick.dist=100000, add.units=T)
+#kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
+#kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen', avoid.overlapping=T, num.layers=20)
+kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black')
+kpPlotCoverage(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen')
+kpText(kp, chr="DS571145", y=0.5, x=0, data.panel="ideogram", col='black', label='Genes', cex=0.9, pos=2, clipping=F)
+kpText(kp, chr="DS571145", y=0.4, x=0, data.panel = 1, r0=0, r1=1, col="black", label="Forward\nFragments", cex=0.8, pos=2, clipping=FALSE)
+kpText(kp, chr="DS571145", y=0.4, x=0, data.panel = 2, r0=0, r1=1, col="darkgreen", label="Reverse Fragments", cex=0.8, pos=2, clipping=FALSE)
+kpAxis(kp, data.panel=1, ymin=0, ymax=200)
+kpAxis(kp, data.panel=2, ymin=0, ymax=200)
+
+```
+
+
+
