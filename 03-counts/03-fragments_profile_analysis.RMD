@@ -49,6 +49,12 @@ names(clengths) = sapply(strsplit(names(clengths), ' | '), '[', 1)
 # Get calculated sample stats:
 sampleStats = read.table("sample_statistics.tsv", as.is=T, header=T, sep='\t')
 
+# Get sample metadata and setup a standard SampleID
+mdata = read.table("../SampleMetaData.csv", header=T, as.is=T, sep='\t')
+mdata$Sample = gsub('-|_', '.', mdata$FileID)
+mdata2 = mdata[mdata$Fragmented.gDNA != 'FC', ]
+mdata2$Group = factor(c("FA"="Pilot", "FB"="Final")[mdata2$Fragmented.gDNA], levels=c("Pilot", "Final"))
+
 # Try reading with data.table, clean, order, etc:
 dtb = fread('03_fragments_profile.tsv')
     # Order by contig and position:
@@ -74,17 +80,14 @@ dtb = fread('03_fragments_profile.tsv')
     dim(dtbnc)
     #2.5m
 
+    #Reorder mdata2:
+    mdata2 = mdata2[match(mdata2$FileID, datacolumns),]
+
 
 # Get sequenced read counts:
 readcount = read.table('../read_primer_counts.txt', header=T, as.is=T, sep=' ')
 readcount$Sample = gsub('-|_', '.', sapply(strsplit(readcount$sample, '_S'), '[', 1))
 
-# Get sample metadata and setup a standard SampleID
-mdata = read.table("../SampleMetaData.csv", header=T, as.is=T, sep='\t')
-mdata$Sample = gsub('-|_', '.', mdata$FileID)
-mdata2 = mdata[mdata$Fragmented.gDNA != 'FC', ]
-mdata2$Group = factor(c("FA"="Pilot", "FB"="Final")[mdata2$Fragmented.gDNA], levels=c("Pilot", "Final"))
-mdata2 = mdata2[match(mdata2$FileID, datacolumns),]
 
 # 2) Create object with summarized tech reps:
 # Note: GroupA --> Pilot, GroupB --> Final
