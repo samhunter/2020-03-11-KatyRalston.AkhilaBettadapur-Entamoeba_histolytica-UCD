@@ -469,43 +469,26 @@ kpAxis(kp, data.panel=2, ymin=0, ymax=200)
 ```
 
 What does the spike in coverage on contig DS571153 look like up close?
-```{r morecoverage}
+```{r morecoverage2}
 zoom.region = GRanges(seqnames = names(clengths)[9], ranges=IRanges(start=0000, end=25000))
 kp = plotKaryotype(custom.genome, plot.type=3, plot.params=plot.params, chrom=names(clengths)[9], zoom=zoom.region,
      main="Fragment coverage contig DS571153")
 kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"="darkgreen")[ann$V7])
 kpAddBaseNumbers(kp, tick.dist=100000, add.units=T)
-kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
-kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='black', border='white', avoid.overlapping=T, num.layers=100)
-# kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black')
-# kpPlotCoverage(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen')
-kpText(kp, chr="DS571145", y=0.5, x=0, data.panel="ideogram", col='black', label='Genes', cex=0.9, pos=2, clipping=F)
+# kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
+# kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='black', border='white', avoid.overlapping=T, num.layers=20)
+kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black')
+kpPlotCoverage(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen')
+#kpText(kp, chr="DS571145", y=0.5, x=0, data.panel="ideogram", col='black', label='Genes', cex=0.9, pos=2, clipping=F)
 kpAddLabels(kp, labels="Forward\nFragments", data.panel=1, col="black")
 kpAddLabels(kp, labels="Reverse\nFragments", data.panel=2, col="black")
-kpAxis(kp, data.panel=1, ymin=0, ymax=200)
-kpAxis(kp, data.panel=2, ymin=0, ymax=200)
+# kpAxis(kp, data.panel=1, ymin=0, ymax=200)
+# kpAxis(kp, data.panel=2, ymin=0, ymax=200)
 
 ## TODO zoom in on the 9th contig, what does the huge spike look like up close?
 ```
 
 
-
-```{r morecoverage}
-kp = plotKaryotype(custom.genome, plot.type=3, chrom=names(clengths)[1:10], main="Fragment coverage across 10 largest contigs")
-kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"="darkgreen")[ann$V7])
-kpAddBaseNumbers(kp, tick.dist=100000, add.units=T)
-#kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
-#kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen', avoid.overlapping=T, num.layers=20)
-kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black')
-kpPlotCoverage(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen')
-kpText(kp, chr="DS571145", y=0.5, x=0, data.panel="ideogram", col='black', label='Genes', cex=0.9, pos=2, clipping=F)
-kpText(kp, chr="DS571145", y=0.4, x=0, data.panel = 1, r0=0, r1=1, col="black", label="Forward\nFragments", cex=0.8, pos=2, clipping=FALSE)
-kpText(kp, chr="DS571145", y=0.4, x=0, data.panel = 2, r0=0, r1=1, col="darkgreen", label="Reverse Fragments", cex=0.8, pos=2, clipping=FALSE)
-kpAxis(kp, data.panel=1, ymin=0, ymax=200)
-kpAxis(kp, data.panel=2, ymin=0, ymax=200)
-
-## TODO: Make a Geneious plot for DS571153
-```
 
 
 ## R session info and packages
