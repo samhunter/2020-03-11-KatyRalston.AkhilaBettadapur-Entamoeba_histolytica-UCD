@@ -35,14 +35,14 @@ Were samples sequenced deeply enough to detect all fragments?
 ## Figure 1
 ### Q) Was there bias in the genomic fragmentation or in the fragments that were cloned into the library plasmid?
 
-<img src="Figs/basecomposition-1.png" style="display: block; margin: auto;" /><img src="Figs/basecomposition-2.png" style="display: block; margin: auto;" />
+<img src="Figs/basecomposition-1.png" style="display: block; margin: auto;" />
 
 <img src="Figs/dinucleotideComposition-1.png" style="display: block; margin: auto;" />
 
 ## Figure 2
 ## Q: Was there bias in PCR/sequencing analysis?
 
-There are 2.5 identified fragments, this is too many for a heatmap (pheatmap gives an error), 
+There are 2.5 million fragments identified, this is too many for a heatmap (pheatmap gives an error), 
 so a boxplot might work. There is clearly a lot of variability in read counts per fragment.
 
 <img src="Figs/readsPerFragment-1.png" style="display: block; margin: auto;" />
@@ -157,7 +157,7 @@ How does coverage look across a larger region of the genome?
 <img src="Figs/morecoverage-1.png" style="display: block; margin: auto;" />
 
 What does the spike in coverage on contig DS571153 look like up close?
-![](Figs/morecoverage2-1.png)<!-- -->
+<img src="Figs/morecoverage2-1.png" style="display: block; margin: auto;" />
 TODO zoom in on the 9th contig, what does the huge spike look like up close in a Geneious plot?
 It would be interesting to see reads + intervals mapped.
 
