@@ -198,7 +198,7 @@ geom_point(aes(color=Type)) +
 labs(title="Rarefaction curves by Library Type: Pilot Samples") + xlab("Sequenced Reads") + ylab('Fragments Detected')
 ```
 
-```{r saturationPlot2, echo=FALSE, fig.height=3, fig.width=6, fig.align="center"}
+```{r saturationPlot2, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
 # Coerce data into "long" form.
 final.tmp <- mapply(FUN = function(x, y) {
   mydf <- as.data.frame(x)
@@ -226,7 +226,7 @@ labs(title="Rarefaction curves by Library Type, Final Samples") + xlab("Sequence
 ## Figure 1
 ### Q) Was there bias in the genomic fragmentation or in the fragments that were cloned into the library plasmid?
 
-```{r basecomposition, echo=FALSE, fig.height=3, fig.width=6, fig.align="center"}
+```{r basecomposition, echo=FALSE, fig.height=5, fig.width=10, fig.align="center"}
 
 genome = readDNAStringSet("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta", 'fasta')
 names(genome) = sapply(strsplit(names(genome), " | "), '[', 1)
@@ -277,9 +277,9 @@ s = factor(rep(c("Genome", "PilotDNA", "PilotPlasmid", "FinalDNA", "FinalPlasmid
     levels=c("Genome", "PilotDNA", "PilotPlasmid", "FinalDNA", "FinalPlasmid"))
 nucleotideFreq = data.frame(Sample=s, Base=names(freq), Freq=freq)
 
-ggplot(nucleotideFreq, aes(fill=Base, y=Freq, x=Sample)) +
-    geom_bar(position="fill", stat="identity") + scale_fill_viridis(discrete=TRUE) + theme_bw() +
-    xlab("") + ylab("Percent Base") + ggtitle("Nucleotide Frequency")
+# ggplot(nucleotideFreq, aes(fill=Base, y=Freq, x=Sample)) +
+#     geom_bar(position="fill", stat="identity") + scale_fill_viridis(discrete=TRUE) + theme_bw() +
+#     xlab("") + ylab("Percent Base") + ggtitle("Nucleotide Frequency")
 
 ggplot(nucleotideFreq, aes(fill=Base, y=Freq, x=Sample)) +
     geom_bar(position="fill", stat="identity", color="black") + 
@@ -307,7 +307,7 @@ ggplot(nucleotideFreq, aes(fill=Dinucleotide, y=Freq, x=Sample)) +
 ## Figure 2
 ## Q: Was there bias in PCR/sequencing analysis?
 
-There are 2.5 identified fragments, this is too many for a heatmap (pheatmap gives an error), 
+There are 2.5 million fragments identified, this is too many for a heatmap (pheatmap gives an error), 
 so a boxplot might work. There is clearly a lot of variability in read counts per fragment.
 
 ```{r readsPerFragment, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
@@ -391,7 +391,7 @@ ggplot(ss2, aes(x=mappedPairs, y=fragments, color=Group, shape=Type)) + theme_bw
     theme(axis.text.x = element_text(angle = 0, face = "bold", size=10),
           axis.text.y = element_text(face = "bold", size=10)) +
     scale_color_manual(values=nice_colors[-1])  +
-    xlab("Sequencing Depth") + ylab("Log2 Fragments Identified")
+    xlab("Sequencing Depth") + ylab("Fragments Identified")
 
 ```
 The Final samples were sequenced deeply enough for the Plasmids, but the number of detected fragments
@@ -458,7 +458,7 @@ What % of the introns are covered (forward, reverse, both)?
 #### All plots are for fragments from the combined Final Plasmid replicates.
 #### Black bars inside of the contig represent genes in forward orientation, green bars are reverse.
 
-```{r coverage, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
+```{r coverage, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
 library(karyoploteR)
 gff = '../Reference/AmoebaDB-46_EhistolyticaHM1IMSS.gff'
 ann = read.table(gff, header=F, as.is=T, sep='\t', quote='', comment.char='#')
@@ -516,7 +516,7 @@ kpAxis(kp, data.panel=2, ymin=0, ymax=120)
 ```
 
 What does the spike in coverage on contig DS571153 look like up close?
-```{r morecoverage2}
+```{r morecoverage2, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
 zoom.region = GRanges(seqnames = names(clengths)[9], ranges=IRanges(start=0000, end=25000))
 kp = plotKaryotype(custom.genome, plot.type=3, plot.params=plot.params, chrom=names(clengths)[9], zoom=zoom.region,
      main="Fragment coverage contig DS571153")
@@ -524,7 +524,7 @@ kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"
 kpAddBaseNumbers(kp, tick.dist=1000, add.units=T)
 # kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
 # kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='black', border='white', avoid.overlapping=T, num.layers=20)
-kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', ymax=120, clipping=F)
+kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', ymax=120)
 kpPlotCoverage(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen', ymax=120)
 #kpText(kp, chr="DS571145", y=0.5, x=0, data.panel="ideogram", col='black', label='Genes', cex=0.9, pos=2, clipping=F)
 kpAddLabels(kp, labels="Forward\nFragments", r0=0, r1=.2, data.panel=1, col="black")
