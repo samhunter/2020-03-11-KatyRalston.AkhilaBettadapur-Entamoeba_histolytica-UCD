@@ -36,7 +36,7 @@ library(hrbrthemes)
 
 options(stringsAsFactors=F)
 
-nice_colors = c("#999999", "#E69F00", "#56B4E9","#e98756","#c08160","#5800e6", "#CDDC49", "#CDDC49",
+nice_colors = c("#999999", "#E69F00", "#56B4E9","#e98756","#c08160","#5800e6", "#CDDC49",
                 "#C475D3", "#E94B30", "#233F57", "#FEE659", "#A1CFDD", "#F4755E", "#D6F6F7","#EB6D58", "#6898BF")
 ```
 
@@ -126,19 +126,12 @@ finalSDF = finalSDF[rowSums(finalSDF[,c('Final.gDNA', 'Final.Plasmid', 'Final.Pl
 ## Figure 0.0
 How many fragments are there per sample?
 
-```{r fragmentsPerSample, echo=FALSE, fig.height=3, fig.width=5, fig.align="center"}
+```{r fragmentsPerSample, echo=FALSE, fig.height=3, fig.width=8, fig.align="center"}
 library("gridExtra")
 ffps = data.frame(sample = datacolumns, mdata2[,c("Group", "Type")],
                   'F' = colSums(dtbnc[orientation=='+',..datacolumns] > 1),
                   'R' = colSums(dtbnc[orientation=='-', ..datacolumns] > 1))
 ffps = pivot_longer(ffps, cols=c("F", "R"), names_to='Orientation')
-
-ggplot(ffps, aes(fill=Orientation, y=value, x=sample)) +
-    facet_wrap(. ~ Group, drop=TRUE, scales='free') +
-    geom_bar(stat="identity", alpha=.7, color='black') + 
-    scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9")) + theme_bw() +
-    theme(axis.text.x = element_text(angle = 90)) +
-    xlab("Sample") + ylab("Fragments") + ggtitle("Fragments Detected Per Sample")
 
 ggplot(ffps, aes(fill=Orientation, y=value, x=sample)) +
     facet_wrap(. ~ Group, drop=TRUE, scales='free') +
@@ -152,7 +145,7 @@ ggplot(ffps, aes(fill=Orientation, y=value, x=sample)) +
 ## Figure 0.1 
 Were samples sequenced deeply enough to detect all fragments?
 
-```{r saturationData, echo=FALSE, fig.show='hide', fig.height=5, fig.width=7, fig.align="center"}
+```{r saturationData, echo=FALSE, fig.show='hide', fig.height=6, fig.width=12, fig.align="center"}
 # TODO
 ## A ggplot rarefaction curve:
 # http://r-sig-ecology.471788.n2.nabble.com/Rarefaction-curves-in-ggplot-td7580273.html
@@ -183,7 +176,7 @@ names(final.RC) = finalSamples
 
 ```
 
-```{r saturationPlot1, echo=FALSE, fig.height=3, fig.width=6, fig.align="center"}
+```{r saturationPlot1, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
 # Coerce data into "long" form.
 pilot.tmp <- mapply(FUN = function(x, y) {
   mydf <- as.data.frame(x)
@@ -202,7 +195,7 @@ ggplot(pilot.xy, aes(x = subsample, y = value, group = SampleID)) +
 theme_bw() + scale_color_manual(values=nice_colors) + theme_bw() +
 geom_line(aes(color=Type)) + 
 geom_point(aes(color=Type)) +
-labs(title="Rarefaction curves by Library Type") + xlab("Sequenced Reads") + ylab('Log10 Fragments Detected')
+labs(title="Rarefaction curves by Library Type: Pilot Samples") + xlab("Sequenced Reads") + ylab('Fragments Detected')
 ```
 
 ```{r saturationPlot2, echo=FALSE, fig.height=3, fig.width=6, fig.align="center"}
@@ -224,18 +217,16 @@ ggplot(final.xy, aes(x = subsample, y = value, group = SampleID)) +
 theme_bw() + scale_color_manual(values=nice_colors) + theme_bw() +
 geom_line(aes(color=Type)) +
 geom_point(aes(color=Type)) +
-labs(title="Rarefaction curves by Library Type, Final Samples") + xlab("Sequenced Reads") + ylab('Log10 Fragments Detected')
+labs(title="Rarefaction curves by Library Type, Final Samples") + xlab("Sequenced Reads") + ylab('Fragments Detected')
 
 
 ```
 
 
-## TODO saturation plots
-
 ## Figure 1
-Q) Was there bias in the genomic fragmentation or in the fragments that were cloned into the library plasmid?
+### Q) Was there bias in the genomic fragmentation or in the fragments that were cloned into the library plasmid?
 
-```{r basecomposition, echo=FALSE, fig.height=3, fig.width=5, fig.align="center"}
+```{r basecomposition, echo=FALSE, fig.height=3, fig.width=6, fig.align="center"}
 
 genome = readDNAStringSet("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta", 'fasta')
 names(genome) = sapply(strsplit(names(genome), " | "), '[', 1)
@@ -298,7 +289,7 @@ ggplot(nucleotideFreq, aes(fill=Base, y=Freq, x=Sample)) +
 
 ```
 
-```{r dinucleotideComposition, echo=FALSE, fig.height=5, fig.width=5, fig.align="center"}
+```{r dinucleotideComposition, echo=FALSE, fig.height=5, fig.width=10, fig.align="center"}
 freq=c(genome.dinucleotide.freq, pilotDNA.dinucleotide.freq, pilotPlasmid.dinucleotide.freq, 
                finalDNA.dinucleotide.freq, finalPlasmid.dinucleotide.freq)
 s = factor(rep(c("Genome", "PilotDNA", "PilotPlasmid", "FinalDNA", "FinalPlasmid"), each=16), 
@@ -314,8 +305,10 @@ ggplot(nucleotideFreq, aes(fill=Dinucleotide, y=Freq, x=Sample)) +
 ```
 
 ## Figure 2
-Q: Was there bias in PCR/sequencing analysis?
-There are too many fragments for a heatmap, so a boxplot might work
+## Q: Was there bias in PCR/sequencing analysis?
+
+There are 2.5 identified fragments, this is too many for a heatmap (pheatmap gives an error), 
+so a boxplot might work. There is clearly a lot of variability in read counts per fragment.
 
 ```{r readsPerFragment, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
 # Build a heatmap showing coverage by fragment:
@@ -340,6 +333,7 @@ ggplot(dtbncl, aes(x=Sample, y=logReadCount, fill=Type)) +
 
 ```
 
+### Figure 2.1
 ### Another boxplot with only samples from the Final set
 ```{r readsPerFragment2, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
 dtbncl2 = dtbncl[dtbncl$Fragmentation == 'Final', ]
@@ -352,8 +346,26 @@ ggplot(dtbncl2, aes(x=Sample, y=logReadCount, fill=Type)) +
 ```
 
 
-## Figure Mapped read pairs vs number of fragments
-```{r fragmentsVreads, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
+### Figure 2.2
+An attempt at a heatmap using fragments present in the largest number of samples.
+This still looks terrible because the fragment matrix is so sparse.
+
+```{r countHeatmap1, echo=FALSE, fig.height=16, fig.width=8, fig.align="center"}
+library(pheatmap)
+v = rowSums(dtbnc[,..samples]>0)
+idx = which(v > quantile(v, .99))
+df = data.frame(dtbnc[idx, ..samples])
+
+pheatmap(log2(df+1), cluster_rows=F)
+
+```
+
+
+## Figure 2.3 Mapped read pairs vs number of fragments
+Does higher sequencing depth lead to detecting more fragments?
+(This is already answered in the saturation plots above).
+
+```{r fragmentsVreadsLogY, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
 ss2 = data.frame(sampleStats, mdata[match(sampleStats$sample, mdata$FileID), ])
 ss2 = na.omit(ss2[ss2$Fragmented.gDNA != 'FC', ])
 tmp = c("FC"="none", "FA"="Pilot", "FB"="Final")
@@ -368,6 +380,26 @@ ggplot(ss2, aes(x=mappedPairs, y=log2Fragments, color=Group, shape=Type)) + them
 
 ```
 
+```{r fragmentsVreadsLinearY, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
+ss2 = data.frame(sampleStats, mdata[match(sampleStats$sample, mdata$FileID), ])
+ss2 = na.omit(ss2[ss2$Fragmented.gDNA != 'FC', ])
+tmp = c("FC"="none", "FA"="Pilot", "FB"="Final")
+ss2$Group = tmp[ss2$Fragmented.gDNA]
+ss2$log2Fragments = log2(ss2$fragments)
+ggplot(ss2, aes(x=mappedPairs, y=fragments, color=Group, shape=Type)) + theme_bw() +
+    geom_point(size=4) + ggtitle("Fragments identified ") +
+    theme(axis.text.x = element_text(angle = 0, face = "bold", size=10),
+          axis.text.y = element_text(face = "bold", size=10)) +
+    scale_color_manual(values=nice_colors[-1])  +
+    xlab("Sequencing Depth") + ylab("Log2 Fragments Identified")
+
+```
+The Final samples were sequenced deeply enough for the Plasmids, but the number of detected fragments
+was still rapidly increasing with sequencing depth for the gDNA samples.
+The story is similar for the Pilot samples, where more fragments would have been detected in the gDNA samples
+if they were sequenced more deeply, but the Plasmid fragments had been fully sampled.
+
+
 
 ## Figure 3
 Q: What are the sizes of the genomic fragments, and what are the sizes of the fragments 
@@ -375,7 +407,7 @@ that were cloned into the library plasmid? Was there any bias in cloning (meanin
 although there was a broader range of sizes in the genomic fragments, fragments of a narrower
 range of sizes were cloned)?
 
-```{r insertsize, echo=FALSE, fig.height=4, fig.width=4, fig.align="center"}
+```{r insertsize, echo=FALSE, fig.height=4, fig.width=7, fig.align="center"}
 library(tidyr)
 samples = colnames(dtbnc)[5:ncol(dtbnc)]
 dtbncl = pivot_longer(dtbnc, cols=samples, names_to='Sample')
@@ -396,25 +428,35 @@ ggplot(dtbncl, aes(x=Insert)) +
 
 ```
 
+
 Summary statistics for fragment length
-```{r insertSizeStats, echo=FALSE, fig.height=4, fig.width=4, fig.align="center"}
-# TODO report summary stats
+```{r insertSizeStats, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
 tmp = tapply(dtbncl$Insert, INDEX=paste(dtbncl$Fragmentation, dtbncl$Type, sep='.'), summary)
 df = data.frame()
 for(n in tmp){
     df = rbind(df, n)
 }
 colnames(df) = c("Min", "Q1", "Median", "Mean", "Q3", "Max")
+rownames(df) = names(tmp)
+df = df[c("Pilot.gDNA", "Pilot.Plasmid", "Final.gDNA", "Final.Plasmid"), ]
 
 kable(df) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = F)
 ```
-
+Median insert for the two groups is similar, and distributions are very similar. There doesn't seem to be much evidence
+of significant size bias in plasmid incorporation.
 
 ## Figure 4
 How much of the genome is covered by the fragments? (Visual representation)
 
-### All plots are for fragments from the combined Final Plasmid replicates.
+### TODO: Compute coverage across the whole genome for combined Final.Plasmid.
+What % of the genome is covered (forward, reverse, both)?
+What % of the exons are covered (forward, reverse, both)?
+What % of the introns are covered (forward, reverse, both)? 
+
+### Visual Representations of Genome Coverage:
+#### All plots are for fragments from the combined Final Plasmid replicates.
+#### Black bars inside of the contig represent genes in forward orientation, green bars are reverse.
 
 ```{r coverage, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
 library(karyoploteR)
@@ -441,32 +483,34 @@ zoom.region = GRanges(seqnames="DS571145", ranges=IRanges(start=1, end=100000))
 plot.params = getDefaultPlotParams(plot.type=3)
 plot.params$leftmargin=0.09
 kp = plotKaryotype(custom.genome, chromosomes='DS571145', zoom=zoom.region, plot.type=3, plot.params=plot.params, 
-    main="Fragment coverage across 100kb region of contig DS571145")
+    main="Fragment coverage across 100kb region")
 #kpDataBackground(kp, data.panel = 1)
 kpAddBaseNumbers(kp, tick.dist=10000, add.units=T)
 kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"="darkgreen")[ann$V7])
 kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
 kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen', avoid.overlapping=T, num.layers=20)
 kpText(kp, chr=seqlevels(kp$genome), y=0.8, x=0, data.panel="ideogram", col='black', label='Genes', cex=0.9, pos=2, clipping=F)
-kpAddLabels(kp, labels="Forward\nFragments", data.panel=1, col="black")
-kpAddLabels(kp, labels="Reverse\nFragments", data.panel=2, col="black")
+kpAddLabels(kp, labels="Forward\nFragments", r0=0, r1=.2, data.panel=1, col="black")
+kpAddLabels(kp, labels="Reverse\nFragments", r0=0, r1=.2, data.panel=2, col="black")
 ```
+The Final Plasmid fragment library provides high coverage across both genes and introns.
+
 
 How does coverage look across a larger region of the genome?
-```{r morecoverage, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
+```{r morecoverage, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
 kp = plotKaryotype(custom.genome, plot.type=3, plot.params=plot.params,
     chrom=names(clengths)[1:10], main="Fragment coverage across 10 largest contigs")
 kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"="darkgreen")[ann$V7])
 kpAddBaseNumbers(kp, tick.dist=100000, add.units=T)
 #kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
 #kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen', avoid.overlapping=T, num.layers=20)
-kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black')
-kpPlotCoverage(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen')
+kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', ymax=120)
+kpPlotCoverage(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen', ymax=120)
 kpText(kp, chr="DS571145", y=0.5, x=0, data.panel="ideogram", col='black', label='Genes', cex=0.9, pos=2, clipping=F)
-kpAddLabels(kp, labels="Forward\nFragments", data.panel=1, col="black")
-kpAddLabels(kp, labels="Reverse\nFragments", data.panel=2, col="black")
-kpAxis(kp, data.panel=1, ymin=0, ymax=200)
-kpAxis(kp, data.panel=2, ymin=0, ymax=200)
+kpAddLabels(kp, labels="Forward\nFragments", r0=0, r1=.2, data.panel=1, col="black")
+kpAddLabels(kp, labels="Reverse\nFragments", r0=0, r1=.2, data.panel=2, col="black")
+kpAxis(kp, data.panel=1, ymin=0, ymax=120)
+kpAxis(kp, data.panel=2, ymin=0, ymax=120)
 
 ## TODO zoom in on the 9th contig, what does the huge spike look like up close?
 ```
@@ -477,19 +521,21 @@ zoom.region = GRanges(seqnames = names(clengths)[9], ranges=IRanges(start=0000, 
 kp = plotKaryotype(custom.genome, plot.type=3, plot.params=plot.params, chrom=names(clengths)[9], zoom=zoom.region,
      main="Fragment coverage contig DS571153")
 kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"="darkgreen")[ann$V7])
-kpAddBaseNumbers(kp, tick.dist=100000, add.units=T)
+kpAddBaseNumbers(kp, tick.dist=1000, add.units=T)
 # kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
 # kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='black', border='white', avoid.overlapping=T, num.layers=20)
-kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black')
-kpPlotCoverage(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen')
+kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', ymax=120, clipping=F)
+kpPlotCoverage(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen', ymax=120)
 #kpText(kp, chr="DS571145", y=0.5, x=0, data.panel="ideogram", col='black', label='Genes', cex=0.9, pos=2, clipping=F)
-kpAddLabels(kp, labels="Forward\nFragments", data.panel=1, col="black")
-kpAddLabels(kp, labels="Reverse\nFragments", data.panel=2, col="black")
-# kpAxis(kp, data.panel=1, ymin=0, ymax=200)
-# kpAxis(kp, data.panel=2, ymin=0, ymax=200)
+kpAddLabels(kp, labels="Forward\nFragments", r0=0, r1=.2, data.panel=1, col="black")
+kpAddLabels(kp, labels="Reverse\nFragments", r0=0, r1=.2, data.panel=2, col="black")
+kpAxis(kp, data.panel=1, ymin=0, ymax=120)
+kpAxis(kp, data.panel=2, ymin=0, ymax=120)
 
-## TODO zoom in on the 9th contig, what does the huge spike look like up close?
+
 ```
+TODO zoom in on the 9th contig, what does the huge spike look like up close in a Geneious plot?
+It would be interesting to see reads + intervals mapped.
 
 
 
