@@ -31,7 +31,7 @@ library(Biostrings)
 library(GenomicRanges)
 library(BSgenome)
 library(ggplot2)
-library(viridis)
+#library(viridis)
 library(hrbrthemes)
 
 options(stringsAsFactors=F)

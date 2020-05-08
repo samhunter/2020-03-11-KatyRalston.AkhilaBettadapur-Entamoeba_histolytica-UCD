@@ -2,9 +2,12 @@
 title: "Coverage Analysis: Entamoeba histolytica knockout libraries"
 author: "Sam Hunter"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: html_document
+output: 
+    html_document:
+        keep_md: yes
 fig_width: 8
 fig_height: 10
+
 ---
 
 ```{r global_options, include=FALSE}
@@ -28,6 +31,10 @@ library(ggplot2)
 library(pheatmap)
 
 
+options(stringsAsFactors=F)
+
+nice_colors = c("#999999", "#E69F00", "#56B4E9","#e98756","#c08160","#5800e6", "#CDDC49",
+                "#C475D3", "#E94B30", "#233F57", "#FEE659", "#A1CFDD", "#F4755E", "#D6F6F7","#EB6D58", "#6898BF")
 
 ```
 
@@ -44,18 +51,19 @@ plotSummaries = function(fcount, count_method, mdata){
 
     cat("### Summary statistics for all samples:\n")
     cat("<br>")
-    print(kable(df[,c("Sample","reads", "AssignedReads","CoveredGenes","Fragmented.gDNA", "Type", "Rep", "PCR.Cycles")], padding=2) %>%
+    print(kable(df[,c("Sample","reads", "AssignedReads","CoveredGenes","Fragmented.gDNA", "Group", "Type", "Rep", "PCR.Cycles")], padding=2) %>%
     kable_styling("striped", full_width = F) %>%
     row_spec(0, angle = 0))
 
     cat("### How does gene coverage correspond to sequencing depth?\n")
     cat("<br>")
 
-    gp1 = ggplot(df, aes(y=CoveredGenes, x=reads, color=Fragmented.gDNA, shape=Type, label=Sample) ) + 
+    gp1 = ggplot(df, aes(y=CoveredGenes, x=reads, color=Group, shape=Type, label=Sample) ) + 
         geom_point(size=2) + 
+        scale_color_manual(values=nice_colors[-1]) + theme_bw() +
         geom_hline(yintercept = 8333, size=1, color = 'tan2')+
         ggtitle(paste("Coverage in", count_method, "read orientation")) +
-        theme(plot.title = element_text(hjust = 0.5)) +
+        #theme(plot.title = element_text(hjust = 0.5)) +
         xlab('Reads Sequenced') + 
         ylab('Genes covered by at least one read with \u2265 27bp overlap')
 
@@ -63,37 +71,44 @@ plotSummaries = function(fcount, count_method, mdata){
 
     # What sort of per-gene coverage is there?
     cat("<br>")
-    cat("### What is the distribution of number of reads mapped per gene?\n")
+    cat("<br>")
+    cat("<br>")
+    cat("What is the distribution of number of reads mapped per gene?\n")
     cat("<br>")
 
     counts_stacked = data.frame(stack(fcount$counts[,colnames(fcount$counts) != 'Undetermined.bam']))
     counts_stacked$col = gsub('.bam', '', counts_stacked$col)
-    counts_stacked$Fragmented.gDNA = mdata$Fragmented.gDNA[match(counts_stacked$col, mdata$Sample)]
+    counts_stacked$Group = mdata$Group[match(counts_stacked$col, mdata$Sample)]
+    counts_stacked$Type = mdata$Type[match(counts_stacked$col, mdata$Sample)]
 
     gp2 = ggplot(counts_stacked) + 
-    geom_boxplot(aes(x=col, y=value, fill=Fragmented.gDNA))+
+    geom_boxplot(aes(x=col, y=value, fill=Type))+
+    scale_fill_manual(values=nice_colors[-1]) + theme_bw() +
     scale_y_continuous(limits = c(0, 100)) +
     theme(axis.text.x = element_text(angle = 90)) +
     theme(plot.title = element_text(hjust = 0.5)) +
-    ggtitle("Reads mapped per gene") +
+    ggtitle(paste("Reads mapped in", count_method, "orientation per gene")) +
     xlab('') + 
-    ylab('Read Count')
+    ylab('Read Count, \u2265 27bp overlap') + facet_wrap(. ~ Group, scales="free_x")
 
     suppressWarnings(print(gp2))
 
+    # Read coverage across all genes, heatmap:
     cat("<br>")
-    cat("### What is read coverage like across all genes, and do samples cluster by prep?\n")
+    cat("<br>")
+    cat("What is read coverage like across all genes, and do samples cluster by prep?\n")
     cat("<br>")
     
     gcounts = fcount$counts[,colnames(fcount$counts) != 'Undetermined.bam']
     colnames(gcounts) = gsub('.bam', '', colnames(gcounts))
-    anncol = mdata[,c('Fragmented.gDNA', 'Type')]
+    anncol = mdata[,c('Group', 'Type')]
     rownames(anncol) = mdata$Sample
     gp3 = pheatmap(log2(gcounts+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
-        cluster_rows=F, scale='none',annotation_col=anncol, fontsize=7 )
+        cluster_rows=F, scale='none',annotation_col=anncol, fontsize=7, cutree_cols = ncol(gcounts))
 
     cat("<br>")
-    cat("### How consistently are genes targeted across samples?\n")
+    cat("<br>")
+    cat("How consistently are genes targeted across samples?\n")
     cat("<br>")
     barplot(table(rowSums(gcounts > 0)), main="Consistency of gene coverage", 
         ylab='Number of Genes', xlab="Number of samples genes are targeted in")
@@ -101,7 +116,7 @@ plotSummaries = function(fcount, count_method, mdata){
     cat("### Are any genes not covered in most/all samples?\n")
     ncidx = order(rowSums(gcounts == 0), decreasing=T)
     pheatmap(log2(gcounts[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
-        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=6)
+        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=6, cutree_cols = ncol(gcounts))
     
 }
 ```
@@ -115,12 +130,20 @@ readcount$Sample = gsub('-|_', '.', sapply(strsplit(readcount$sample, '_S'), '['
 mdata = read.table("../SampleMetaData.csv", header=T, as.is=T, sep='\t')
 mdata$Sample = gsub('-|_', '.', mdata$FileID)
 
+# Drop LibC samples from mdata and only quant bams from the A and B Groups
+mdata = mdata[mdata$Fragmented.gDNA != 'FC', ]
+mdata$Group = factor(c("FA"="Pilot", "FB"="Final")[mdata$Fragmented.gDNA], levels=c("Pilot", "Final"))
 
-bams = dir('../02-mapped/', pattern='*.bam', full.names=T)
+bams = paste0("../02-mapped/", mdata$FileID, ".bam")
+
+#bams = dir('../02-mapped/', pattern='*.bam', full.names=T)
 gff = '../Reference/AmoebaDB-46_EhistolyticaHM1IMSS.gff'
 ann = read.table(gff, header=F, as.is=T, sep='\t', quote='', comment.char='#')
 ann = ann[ann$V3 == 'gene',]
 ann$gene = gsub('ID=', '', sapply(strsplit(ann$V9, ';'), '[', 1))
+
+#Record ann to contig, start order (sortof chromosome order)
+ann = ann[order(ann$V1, ann$V4), ]
 
 forward_stranded_counts = featureCounts(bams, annot.ext = gff, 
     isGTFAnnotationFile=T, 
