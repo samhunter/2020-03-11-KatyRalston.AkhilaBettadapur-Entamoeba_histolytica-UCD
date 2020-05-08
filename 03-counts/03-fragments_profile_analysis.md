@@ -20,7 +20,7 @@ fig_height: 10
 ## Figure 0.0
 How many fragments are there per sample?
 
-<img src="Figs/fragmentsPerSample-1.png" style="display: block; margin: auto;" /><img src="Figs/fragmentsPerSample-2.png" style="display: block; margin: auto;" />
+<img src="Figs/fragmentsPerSample-1.png" style="display: block; margin: auto;" />
 
 ## Figure 0.1 
 Were samples sequenced deeply enough to detect all fragments?
@@ -32,27 +32,45 @@ Were samples sequenced deeply enough to detect all fragments?
 <img src="Figs/saturationPlot2-1.png" style="display: block; margin: auto;" />
 
 
-## TODO saturation plots
-
 ## Figure 1
-Q) Was there bias in the genomic fragmentation or in the fragments that were cloned into the library plasmid?
+### Q) Was there bias in the genomic fragmentation or in the fragments that were cloned into the library plasmid?
 
 <img src="Figs/basecomposition-1.png" style="display: block; margin: auto;" /><img src="Figs/basecomposition-2.png" style="display: block; margin: auto;" />
 
 <img src="Figs/dinucleotideComposition-1.png" style="display: block; margin: auto;" />
 
 ## Figure 2
-Q: Was there bias in PCR/sequencing analysis?
-There are too many fragments for a heatmap, so a boxplot might work
+## Q: Was there bias in PCR/sequencing analysis?
+
+There are 2.5 identified fragments, this is too many for a heatmap (pheatmap gives an error), 
+so a boxplot might work. There is clearly a lot of variability in read counts per fragment.
 
 <img src="Figs/readsPerFragment-1.png" style="display: block; margin: auto;" />
 
+### Figure 2.1
 ### Another boxplot with only samples from the Final set
 <img src="Figs/readsPerFragment2-1.png" style="display: block; margin: auto;" />
 
 
-## Figure Mapped read pairs vs number of fragments
-<img src="Figs/fragmentsVreads-1.png" style="display: block; margin: auto;" />
+### Figure 2.2
+An attempt at a heatmap using fragments present in the largest number of samples.
+This still looks terrible because the fragment matrix is so sparse.
+
+<img src="Figs/countHeatmap1-1.png" style="display: block; margin: auto;" />
+
+
+## Figure 2.3 Mapped read pairs vs number of fragments
+Does higher sequencing depth lead to detecting more fragments?
+(This is already answered in the saturation plots above).
+
+<img src="Figs/fragmentsVreadsLogY-1.png" style="display: block; margin: auto;" />
+
+<img src="Figs/fragmentsVreadsLinearY-1.png" style="display: block; margin: auto;" />
+The Final samples were sequenced deeply enough for the Plasmids, but the number of detected fragments
+was still rapidly increasing with sequencing depth for the gDNA samples.
+The story is similar for the Pilot samples, where more fragments would have been detected in the gDNA samples
+if they were sequenced more deeply, but the Plasmid fragments had been fully sampled.
+
 
 
 ## Figure 3
@@ -63,10 +81,12 @@ range of sizes were cloned)?
 
 <img src="Figs/insertsize-1.png" style="display: block; margin: auto;" />
 
+
 Summary statistics for fragment length
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
+   <th style="text-align:left;">   </th>
    <th style="text-align:right;"> Min </th>
    <th style="text-align:right;"> Q1 </th>
    <th style="text-align:right;"> Median </th>
@@ -77,22 +97,7 @@ Summary statistics for fragment length
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:right;"> 2 </td>
-   <td style="text-align:right;"> 510 </td>
-   <td style="text-align:right;"> 544 </td>
-   <td style="text-align:right;"> 540.3260 </td>
-   <td style="text-align:right;"> 576 </td>
-   <td style="text-align:right;"> 1493 </td>
-  </tr>
-  <tr>
-   <td style="text-align:right;"> 7 </td>
-   <td style="text-align:right;"> 527 </td>
-   <td style="text-align:right;"> 559 </td>
-   <td style="text-align:right;"> 554.9050 </td>
-   <td style="text-align:right;"> 588 </td>
-   <td style="text-align:right;"> 1382 </td>
-  </tr>
-  <tr>
+   <td style="text-align:left;"> Pilot.gDNA </td>
    <td style="text-align:right;"> 77 </td>
    <td style="text-align:right;"> 377 </td>
    <td style="text-align:right;"> 417 </td>
@@ -101,6 +106,7 @@ Summary statistics for fragment length
    <td style="text-align:right;"> 1425 </td>
   </tr>
   <tr>
+   <td style="text-align:left;"> Pilot.Plasmid </td>
    <td style="text-align:right;"> 282 </td>
    <td style="text-align:right;"> 384 </td>
    <td style="text-align:right;"> 423 </td>
@@ -108,22 +114,52 @@ Summary statistics for fragment length
    <td style="text-align:right;"> 465 </td>
    <td style="text-align:right;"> 590 </td>
   </tr>
+  <tr>
+   <td style="text-align:left;"> Final.gDNA </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:right;"> 510 </td>
+   <td style="text-align:right;"> 544 </td>
+   <td style="text-align:right;"> 540.3260 </td>
+   <td style="text-align:right;"> 576 </td>
+   <td style="text-align:right;"> 1493 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Final.Plasmid </td>
+   <td style="text-align:right;"> 7 </td>
+   <td style="text-align:right;"> 527 </td>
+   <td style="text-align:right;"> 559 </td>
+   <td style="text-align:right;"> 554.9050 </td>
+   <td style="text-align:right;"> 588 </td>
+   <td style="text-align:right;"> 1382 </td>
+  </tr>
 </tbody>
 </table>
-
+Median insert for the two groups is similar, and distributions are very similar. There doesn't seem to be much evidence
+of significant size bias in plasmid incorporation.
 
 ## Figure 4
 How much of the genome is covered by the fragments? (Visual representation)
 
-### All plots are for fragments from the combined Final Plasmid replicates.
+### TODO: Compute coverage across the whole genome for combined Final.Plasmid.
+What % of the genome is covered (forward, reverse, both)?
+What % of the exons are covered (forward, reverse, both)?
+What % of the introns are covered (forward, reverse, both)? 
+
+### Visual Representations of Genome Coverage:
+#### All plots are for fragments from the combined Final Plasmid replicates.
+#### Black bars inside of the contig represent genes in forward orientation, green bars are reverse.
 
 <img src="Figs/coverage-1.png" style="display: block; margin: auto;" />
+The Final Plasmid fragment library provides high coverage across both genes and introns.
+
 
 How does coverage look across a larger region of the genome?
 <img src="Figs/morecoverage-1.png" style="display: block; margin: auto;" />
 
 What does the spike in coverage on contig DS571153 look like up close?
 ![](Figs/morecoverage2-1.png)<!-- -->
+TODO zoom in on the 9th contig, what does the huge spike look like up close in a Geneious plot?
+It would be interesting to see reads + intervals mapped.
 
 
 
