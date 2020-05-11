@@ -71,7 +71,7 @@ multiqc -d ./03-sorted -i mappingQC -o 03-mapping_QC
  python3 03-count_fragments.py > 03-count_fragments.log
 
  # Turn output into plots and report
- Rscript -e "rmarkdown::render('./03-counts/03-fragments_profile_analysis.RMD')"
+ Rscript -e "rmarkdown::render('03-fragments_profile_analysis.RMD')"
 
 
 
