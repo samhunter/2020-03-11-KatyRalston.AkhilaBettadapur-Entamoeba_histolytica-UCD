@@ -11,7 +11,7 @@ fig_height: 10
 ---
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.width=10, fig.height=8, fig.path='Figs/',
+knitr::opts_chunk$set(fig.width=14, fig.height=12, fig.path='Figs/',
                       echo=FALSE, warning=FALSE, message=FALSE)
 ```
 
@@ -49,11 +49,20 @@ plotSummaries = function(fcount, count_method, mdata){
     df = data.frame(df, readcount[match(df$Sample, readcount$Sample), ])
     df = df[df$Sample != 'Undetermined', ]
 
+    # TODO
     cat("### Summary statistics for all samples:\n")
     cat("<br>")
     print(kable(df[,c("Sample","reads", "AssignedReads","CoveredGenes","Fragmented.gDNA", "Group", "Type", "Rep", "PCR.Cycles")], padding=2) %>%
     kable_styling("striped", full_width = F) %>%
     row_spec(0, angle = 0))
+
+    # # Combine replicates and present summary stats:
+    # cat("<br>")
+    # cat("<br>")
+    # cat("### Summary statistics for combined samples:\n")
+    # cat("<br>")
+    # df = 
+
 
     cat("### How does gene coverage correspond to sequencing depth?\n")
     cat("<br>")
@@ -105,19 +114,69 @@ plotSummaries = function(fcount, count_method, mdata){
     rownames(anncol) = mdata$Sample
     gp3 = pheatmap(log2(gcounts+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
         cluster_rows=F, scale='none',annotation_col=anncol, fontsize=7, cutree_cols = ncol(gcounts))
+    
+
+    # Read coverage across all genes for Final samples only.
+    cat("<br>")
+    cat("<br>")
+    cat("What is read coverage like across all genes for Final samples only? Do samples cluster by prep?\n")
+    cat("<br>")
+
+    finalSamples = mdata$Sample[as.character(mdata$Group) == 'Final']
+    gcountsF = fcount$counts[,paste0(finalSamples, '.bam')]
+    colnames(gcountsF) = gsub('.bam', '', colnames(gcountsF))
+    anncolF = mdata[match(finalSamples, mdata$Sample) ,c('Group', 'Type')]
+    rownames(anncolF) = finalSamples
+    gp4 = pheatmap(log2(gcountsF+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
+        cluster_rows=F, scale='none',annotation_col=anncolF, fontsize=7, cutree_cols = ncol(gcounts))
+
+    # cat("<br>")
+    # cat("<br>")
+    # cat("How consistently are genes targeted across samples?\n")
+    # cat("<br>")
+    #df = rowSums(gcounts>0) 
+    barplot(table(rowSums(gcounts > 0)), main="Consistency of gene coverage", 
+        ylab='Number of Genes', xlab="Number of samples genes are targeted in")
+
+
+    # TODO convert barplot to ggplot
+    # ggplot(ffps, aes(fill=Orientation, y=value, x=sample)) +
+    #     facet_wrap(. ~ Group, drop=TRUE, scales='free') +
+    #     geom_bar(stat="identity", alpha=.7, color='black') + 
+    #     scale_fill_manual(values=nice_colors) + theme_bw() +
+    #     theme(axis.text.x = element_text(angle = 90)) +
+    #     xlab("Sample") + ylab("Fragments") + ggtitle("Fragments Detected Per Sample")
+
 
     cat("<br>")
     cat("<br>")
     cat("How consistently are genes targeted across samples?\n")
     cat("<br>")
-    barplot(table(rowSums(gcounts > 0)), main="Consistency of gene coverage", 
+    barplot(table(rowSums(gcountsf > 0)), main="Consistency of gene coverage", 
         ylab='Number of Genes', xlab="Number of samples genes are targeted in")
 
-    cat("### Are any genes not covered in most/all samples?\n")
+
+    cat("<br>")
+    cat("<br>")
+    cat("Are any genes not covered in most/all samples?\n")
+    cat("<br>")
+    
     ncidx = order(rowSums(gcounts == 0), decreasing=T)
     pheatmap(log2(gcounts[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
         cluster_rows=F, scale='none', annotation_col=anncol, fontsize=6, cutree_cols = ncol(gcounts))
-    
+
+
+    cat("<br>")
+    cat("<br>")
+    cat("Are any genes not covered in most/all FINAL samples?\n")
+    cat("<br>")
+
+    cat("### Are any genes not covered in samples from the Final group?\n")
+    ncidx = order(rowSums(gcounts == 0), decreasing=T)
+    pheatmap(log2(gcountsf[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
+        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=6, cutree_cols = ncol(gcounts))
+
+
 }
 ```
 
@@ -224,16 +283,9 @@ plotSummaries(unstranded_counts, "unstranded", mdata)
 ```
 
 
-```{r ReadData}
 
-# Try reading with data.table:
-# dtb = fread('03_fragments_profile.tsv')
-# Order by contig and position:
-# dtb = dtb[order(R1contig, R1start)]
-
-# Get contig lengths:
-# clengths = fasta.seqlengths("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta")
-# names(clengths) = sapply(strsplit(names(clengths), ' | '), '[', 1)
-
-
+## R session info and packages
+```{r sessionInfo}
+library("pander")
+pander(sessionInfo(), compact = FALSE)
 ```

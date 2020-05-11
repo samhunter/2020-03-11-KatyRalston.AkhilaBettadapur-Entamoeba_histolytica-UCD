@@ -123,10 +123,11 @@ finalSDF = finalSDF[rowSums(finalSDF[,c('Final.gDNA', 'Final.Plasmid', 'Final.Pl
 ```
 
 
+
 ## Figure 0.0
 How many fragments are there per sample?
 
-```{r fragmentsPerSample, echo=FALSE, fig.height=3, fig.width=8, fig.align="center"}
+```{r p001_fragmentsPerSample, echo=FALSE, fig.height=3, fig.width=8, fig.align="center"}
 library("gridExtra")
 ffps = data.frame(sample = datacolumns, mdata2[,c("Group", "Type")],
                   'F' = colSums(dtbnc[orientation=='+',..datacolumns] > 1),
@@ -166,7 +167,7 @@ finalSamples = c('D10_FB-1', 'D11_FB-2', 'D12_FB-3','F1_LibB1-1','F2_LibB1-2','F
                 'F10_LibB4-1','F11_LibB4-2','F12_LibB4-3')
 finalData = dtbnc[rowSums(dtbnc[,..finalSamples])>0, ..finalSamples]
 
-## TODO look at the rarecurve function 
+## Generate data for rarecurves:
 pilot.RC <- rarecurve(t(pilotData), step = 10000, label = FALSE)
 names(pilot.RC) = pilotSamples
 
@@ -176,7 +177,7 @@ names(final.RC) = finalSamples
 
 ```
 
-```{r saturationPlot1, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
+```{r p002_saturationPlot1, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
 # Coerce data into "long" form.
 pilot.tmp <- mapply(FUN = function(x, y) {
   mydf <- as.data.frame(x)
@@ -198,7 +199,7 @@ geom_point(aes(color=Type)) +
 labs(title="Rarefaction curves by Library Type: Pilot Samples") + xlab("Sequenced Reads") + ylab('Fragments Detected')
 ```
 
-```{r saturationPlot2, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
+```{r p003_saturationPlot2, echo=FALSE, fig.height=6, fig.width=12, fig.align="center"}
 # Coerce data into "long" form.
 final.tmp <- mapply(FUN = function(x, y) {
   mydf <- as.data.frame(x)
@@ -226,7 +227,7 @@ labs(title="Rarefaction curves by Library Type, Final Samples") + xlab("Sequence
 ## Figure 1
 ### Q) Was there bias in the genomic fragmentation or in the fragments that were cloned into the library plasmid?
 
-```{r basecomposition, echo=FALSE, fig.height=5, fig.width=10, fig.align="center"}
+```{r p004_basecomposition, echo=FALSE, fig.height=5, fig.width=10, fig.align="center"}
 
 genome = readDNAStringSet("../Reference/AmoebaDB-46_EhistolyticaHM1IMSS_Genome.fasta", 'fasta')
 names(genome) = sapply(strsplit(names(genome), " | "), '[', 1)
@@ -289,7 +290,7 @@ ggplot(nucleotideFreq, aes(fill=Base, y=Freq, x=Sample)) +
 
 ```
 
-```{r dinucleotideComposition, echo=FALSE, fig.height=5, fig.width=10, fig.align="center"}
+```{r p005_dinucleotideComposition, echo=FALSE, fig.height=5, fig.width=10, fig.align="center"}
 freq=c(genome.dinucleotide.freq, pilotDNA.dinucleotide.freq, pilotPlasmid.dinucleotide.freq, 
                finalDNA.dinucleotide.freq, finalPlasmid.dinucleotide.freq)
 s = factor(rep(c("Genome", "PilotDNA", "PilotPlasmid", "FinalDNA", "FinalPlasmid"), each=16), 
@@ -310,7 +311,7 @@ ggplot(nucleotideFreq, aes(fill=Dinucleotide, y=Freq, x=Sample)) +
 There are 2.5 million fragments identified, this is too many for a heatmap (pheatmap gives an error), 
 so a boxplot might work. There is clearly a lot of variability in read counts per fragment.
 
-```{r readsPerFragment, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
+```{r p006_readsPerFragment, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
 # Build a heatmap showing coverage by fragment:
 # This is too big to show as a heatmap
 #pheatmap(log2(gcounts+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
@@ -335,7 +336,7 @@ ggplot(dtbncl, aes(x=Sample, y=logReadCount, fill=Type)) +
 
 ### Figure 2.1
 ### Another boxplot with only samples from the Final set
-```{r readsPerFragment2, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
+```{r p007_readsPerFragment2, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
 dtbncl2 = dtbncl[dtbncl$Fragmentation == 'Final', ]
 ggplot(dtbncl2, aes(x=Sample, y=logReadCount, fill=Type)) +
     geom_boxplot() + theme_bw() + 
@@ -350,7 +351,7 @@ ggplot(dtbncl2, aes(x=Sample, y=logReadCount, fill=Type)) +
 An attempt at a heatmap using fragments present in the largest number of samples.
 This still looks terrible because the fragment matrix is so sparse.
 
-```{r countHeatmap1, echo=FALSE, fig.height=16, fig.width=8, fig.align="center"}
+```{r p008_countHeatmap1, echo=FALSE, fig.height=16, fig.width=8, fig.align="center"}
 library(pheatmap)
 v = rowSums(dtbnc[,..samples]>0)
 idx = which(v > quantile(v, .99))
@@ -365,7 +366,7 @@ pheatmap(log2(df+1), cluster_rows=F)
 Does higher sequencing depth lead to detecting more fragments?
 (This is already answered in the saturation plots above).
 
-```{r fragmentsVreadsLogY, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
+```{r p009_fragmentsVreadsLogY, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
 ss2 = data.frame(sampleStats, mdata[match(sampleStats$sample, mdata$FileID), ])
 ss2 = na.omit(ss2[ss2$Fragmented.gDNA != 'FC', ])
 tmp = c("FC"="none", "FA"="Pilot", "FB"="Final")
@@ -380,7 +381,7 @@ ggplot(ss2, aes(x=mappedPairs, y=log2Fragments, color=Group, shape=Type)) + them
 
 ```
 
-```{r fragmentsVreadsLinearY, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
+```{r p010_fragmentsVreadsLinearY, echo=FALSE, fig.height=6, fig.width=9, fig.align="center"}
 ss2 = data.frame(sampleStats, mdata[match(sampleStats$sample, mdata$FileID), ])
 ss2 = na.omit(ss2[ss2$Fragmented.gDNA != 'FC', ])
 tmp = c("FC"="none", "FA"="Pilot", "FB"="Final")
@@ -407,7 +408,7 @@ that were cloned into the library plasmid? Was there any bias in cloning (meanin
 although there was a broader range of sizes in the genomic fragments, fragments of a narrower
 range of sizes were cloned)?
 
-```{r insertsize, echo=FALSE, fig.height=4, fig.width=7, fig.align="center"}
+```{r p011_insertsize, echo=FALSE, fig.height=4, fig.width=7, fig.align="center"}
 library(tidyr)
 samples = colnames(dtbnc)[5:ncol(dtbnc)]
 dtbncl = pivot_longer(dtbnc, cols=samples, names_to='Sample')
@@ -446,6 +447,8 @@ kable(df) %>%
 Median insert for the two groups is similar, and distributions are very similar. There doesn't seem to be much evidence
 of significant size bias in plasmid incorporation.
 
+
+
 ## Figure 4
 How much of the genome is covered by the fragments? (Visual representation)
 
@@ -458,7 +461,7 @@ What % of the introns are covered (forward, reverse, both)?
 #### All plots are for fragments from the combined Final Plasmid replicates.
 #### Black bars inside of the contig represent genes in forward orientation, green bars are reverse.
 
-```{r coverage, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
+```{r p012_coverage, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
 library(karyoploteR)
 gff = '../Reference/AmoebaDB-46_EhistolyticaHM1IMSS.gff'
 ann = read.table(gff, header=F, as.is=T, sep='\t', quote='', comment.char='#')
@@ -497,7 +500,7 @@ The Final Plasmid fragment library provides high coverage across both genes and 
 
 
 How does coverage look across a larger region of the genome?
-```{r morecoverage, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
+```{r p013_morecoverage, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
 kp = plotKaryotype(custom.genome, plot.type=3, plot.params=plot.params,
     chrom=names(clengths)[1:10], main="Fragment coverage across 10 largest contigs")
 kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"="darkgreen")[ann$V7])
@@ -516,7 +519,7 @@ kpAxis(kp, data.panel=2, ymin=0, ymax=120)
 ```
 
 What does the spike in coverage on contig DS571153 look like up close?
-```{r morecoverage2, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
+```{r p014_morecoverage2, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
 zoom.region = GRanges(seqnames = names(clengths)[9], ranges=IRanges(start=0000, end=25000))
 kp = plotKaryotype(custom.genome, plot.type=3, plot.params=plot.params, chrom=names(clengths)[9], zoom=zoom.region,
      main="Fragment coverage contig DS571153")
@@ -537,6 +540,169 @@ kpAxis(kp, data.panel=2, ymin=0, ymax=120)
 TODO zoom in on the 9th contig, what does the huge spike look like up close in a Geneious plot?
 It would be interesting to see reads + intervals mapped.
 
+
+
+## Figure/Table 5, 6, 7:
+Q: How much of the genome is covered by the fragments? (more in-depth analysis)
+Q: For genes that are represented, is there 1 fragment, or more?
+Q: For genes that are represented, is the library fragment in the same orientation as the gene, or not?
+
+```{r genomeCoverageStats, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
+library(plyranges)
+gff = '../Reference/AmoebaDB-46_EhistolyticaHM1IMSS.gff'
+ann = read.table(gff, header=F, as.is=T, sep='\t', quote='', comment.char='#')
+ann = ann[ann$V3 == 'gene',]
+ann$gene = gsub('ID=', '', sapply(strsplit(ann$V9, ';'), '[', 1))
+
+custom.genome = GRanges(seqnames = names(clengths), ranges = IRanges(start=rep(1, length(clengths)), end=clengths))
+custom.ann =GRanges(seqnames=ann$V1, ranges=IRanges(start=ann$V4, end=ann$V5), strand=ann$V7, mcols=data.frame(gene=ann$gene),
+        seqlengths = clengths, genome='AmoebaDB-46_EhistolyticaHM1IMSS')
+
+#custom.genome = c(custom.genome, custom.ann)
+
+## calculate how much of total genome is covered by fragments in forward and reverse orientation:
+
+### TODO:
+#   A table needs to be made for percent of genome covered by + and - orientation reads for both Pilot and Final
+#   Plasmid and gDNA
+
+calcCountStats = function(gr){
+    # Calculate statistics for one sample, ONLY PASS IN RANGES WITH >1 coverage count!
+    # statistics = bpCoveredForward, PctCoverageForward, bpCoveredReverse, PctCoverageReverse,
+    #              GenesTargetedStranded, GenesMissedStranded, MeanFragmentsPerGeneStranded, 
+    #              GenesTargetedUnStranded, GenesMissedUnStranded, MeanFragmentsPerGeneUnStranded
+    # First, count bp covered
+    bpCoveredForward = sum( unlist( lapply(coverage(gr[strand(gr) == '+']),
+                                      FUN=function(x){ sum(x@lengths[x@values>0]) }))) 
+    pctCoverageForward = 100 * bpCoveredForward/sum(clengths)
+
+    bpCoveredReverse = sum( unlist( lapply(coverage(gr[strand(gr) == '-']),
+                                      FUN=function(x){ sum(x@lengths[x@values>0]) }))) 
+    pctCoverageReverse = 100 * bpCoveredForward/sum(clengths)
+
+    bpCoveredUnStranded = sum( unlist( lapply(coverage(gr),
+                                      FUN=function(x){ sum(x@lengths[x@values>0]) }))) 
+    pctCoverageUnStranded = 100 * bpCoveredUnStranded/sum(clengths)
+
+
+    #stranded overlap (strands must match), min length = 27
+    FragmentsPerGeneStranded = countOverlaps(custom.ann, gr, minoverlap=27L, type="any", ignore.strand=F)
+    GenesTargetedStranded = sum(FragmentsPerGeneStranded > 0)
+    GenesMissedStranded = length(custom.ann) - GenesTargetedStranded
+    MeanFragmentsPerGeneStranded = round(mean(FragmentsPerGeneStranded), 1)
+    GenesTargetedByMultipleStranded = sum(FragmentsPerGeneStranded > 1)
+    #UnStranded overlap, min length = 27
+    FragmentsPerGeneUnStranded = countOverlaps(custom.ann, gr, minoverlap=27L, type="any", ignore.strand=TRUE )
+    GenesTargetedUnStranded = sum(FragmentsPerGeneUnStranded > 0)
+    GenesMissedUnStranded = length(custom.ann) - GenesTargetedUnStranded
+    MeanFragmentsPerGeneUnStranded = round(mean(FragmentsPerGeneUnStranded), 1)
+    GenesTargetedByMultipleUnStranded = sum(FragmentsPerGeneUnStranded > 1)
+
+    #Make return object
+    retval = list("stats"=c("bpCoveredForward"=bpCoveredForward, "pctCoveredForward"=pctCoverageForward,
+                            "bpCoveredReverse"=bpCoveredReverse, "pctCoveredReverse"=pctCoverageReverse,
+                            "bpCoveredUnStranded"=bpCoveredUnStranded, "pctCoveredUnStranded"=pctCoverageUnStranded,
+                            "GenesTargetedStranded"=GenesTargetedStranded,"GenesMissedStranded"=GenesMissedStranded,
+                            "MeanFragmentsPerGeneStranded"=MeanFragmentsPerGeneStranded,"GenesTargetedByMultipleStranded"=GenesTargetedByMultipleStranded,
+                            "GenesTargetedUnStranded"=GenesTargetedUnStranded,"GenesMissedUnStranded"=GenesMissedUnStranded,
+                            "MeanFragmentsPerGeneUnStranded"=MeanFragmentsPerGeneUnStranded,"GenesTargetedByMultipleUnStranded"=GenesTargetedByMultipleUnStranded
+                            ),
+                  "FragmentsPerGeneStranded"=FragmentsPerGeneStranded,
+                  "FragmentsPerGeneUnStranded"=FragmentsPerGeneUnStranded)
+
+}
+
+
+# Pilot stats:
+pilot.gr = GRanges(seqnames=pilotSDF$contig, 
+                  ranges=IRanges(start=pilotSDF$start, end=pilotSDF$stop), 
+                  strand=pilotSDF$orientation,  seqlengths = clengths, genome='AmoebaDB-46_EhistolyticaHM1IMSS',
+                  pilotSDF[,c('Pilot.gDNA','Pilot.Plasmid')])
+
+
+pilot.gDNA.stats = calcCountStats(pilot.gr[pilot.gr$Pilot.gDNA>0])
+pilot.Plasmid.stats = calcCountStats(pilot.gr[pilot.gr$Pilot.Plasmid>0])
+
+# Final stats:
+final.gr = GRanges(seqnames=finalSDF$contig, 
+                  ranges=IRanges(start=finalSDF$start, end=finalSDF$stop), 
+                  strand=finalSDF$orientation,  seqlengths = clengths, genome='AmoebaDB-46_EhistolyticaHM1IMSS',
+                  finalSDF[,c('Final.gDNA','Final.Plasmid')])
+
+final.gDNA.stats = calcCountStats(final.gr[final.gr$Final.gDNA>0])
+final.Plasmid.stats = calcCountStats(final.gr[final.gr$Final.Plasmid>0])
+
+
+df = data.frame(Pilot.gDNA = pilot.gDNA.stats$stats, pilot.Plasmid = pilot.Plasmid.stats$stats,
+                Final.gDNA = final.gDNA.stats$stats, Final.Plasmid = final.Plasmid.stats$stats)
+
+# print table:
+kable(round(df,2)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = F)
+
+```
+
+## Figure/Table 6 & 7 Fragments per gene Heatmap:
+For genes that are represented, is the library fragment in the same orientation as the gene, or not?
+
+```{r p013_fragmentsPerGeneHeatmap, echo=FALSE, fig.height=20, fig.width=8, fig.align="center"}
+# 
+
+df = data.frame(Pilot.gDNA.Stranded = pilot.gDNA.stats$FragmentsPerGeneStranded, 
+                Pilot.gDNA.UnStranded = pilot.gDNA.stats$FragmentsPerGeneUnStranded, 
+                Pilot.Plasmid.Stranded = pilot.Plasmid.stats$FragmentsPerGeneStranded, 
+                Pilot.Plasmid.UnStranded = pilot.Plasmid.stats$FragmentsPerGeneUnStranded, 
+                Final.gDNA.Stranded = final.gDNA.stats$FragmentsPerGeneStranded, 
+                Final.gDNA.UnStranded = final.gDNA.stats$FragmentsPerGeneUnStranded, 
+                Final.Plasmid.Stranded = final.Plasmid.stats$FragmentsPerGeneStranded, 
+                Final.Plasmid.UnStranded = final.Plasmid.stats$FragmentsPerGeneUnStranded)
+rownames(df) =ann$gene
+
+anncol = data.frame(Strand=sapply(strsplit(colnames(df), '.', fixed=T), '[', 3),
+                    Type=sapply(strsplit(colnames(df), '.', fixed=T), '[', 2),
+                    Group=sapply(strsplit(colnames(df), '.', fixed=T), '[', 1))
+rownames(anncol) = colnames(df)                
+
+pheatmap(log2(df+1), main='Log2 Fragment coverage by gene', show_rownames=F, ylab='Genes', 
+        cluster_rows=F, cluster_col=F, scale='none',annotation_col=anncol, fontsize=7, gaps_col = seq(1, ncol(df)))
+
+```
+
+## Figure 8
+Q: What about the few genes that are never represented?
+```{r p014_noCoverageGenesHeatmap, echo=FALSE, fig.height=20, fig.width=8, fig.align="center"}
+
+idx = order(rowSums(df < 1), decreasing=T)
+df2 = df[idx,][1:50,]
+pheatmap(log2(df2+1), main='Log2 Fragment coverage by gene, 50 lowest covered genes', show_rownames=T, ylab='Genes', 
+        cluster_rows=F, cluster_col=F, scale='none',annotation_col=anncol, fontsize=7, gaps_col = seq(1, ncol(df)))
+
+
+```
+
+## Tables:
+
+### Sequencing and Fragment count statistics for Final and Pilot samples
+```{r sampleStatsTable, echo=FALSE, fig.height=20, fig.width=8, fig.align="center"}
+df = data.frame(sampleStats[match(mdata2$FileID, sampleStats$sample), ][, c("sample", "mappedPairs", "fragments")],
+                 mdata2[,c("Type", "Rep", "Group")])
+kable(df) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = F)
+
+```
+
+### Fragment count statistics for combined replicates
+Q: How many unique fragments are there?
+```{r sampleStatsTableCombined, echo=FALSE, fig.height=20, fig.width=8, fig.align="center"}
+df = data.frame(Pilot.gDNA = sum(pilotSDF$Pilot.gDNA > 0),
+                Pilot.Plasmid = sum(pilotSDF$Pilot.Plasmid>0),
+                Final.gDNA = sum(finalSDF$Final.gDNA>0), 
+                Final.Plasmid =sum(finalSDF$Final.Plasmid>0))
+rownames(df) = "Fragments"
+kable(df) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = F)
+
+```
 
 
 

@@ -131,4 +131,4 @@ http://bioconductor.org/packages/release/bioc/manuals/Rsubread/man/Rsubread.pdf
 
 mkdir 03-coverage_analysis
 module load R/3.6.1
-Rscript -e "rmarkdown::render('./03-coverage_analysis/03-coverage_analysis.RMD')"
+Rscript -e "rmarkdown::render('03-coverage_analysis.RMD')"
