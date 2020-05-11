@@ -25,7 +25,7 @@ knitr::opts_chunk$set(fig.width=14, fig.height=12, fig.path='Figs/',
 library(kableExtra)
 library(Biostrings)
 library(Rsubread)
-library(cowplot)
+#library(cowplot)
 library(readr)
 library(ggplot2)
 library(pheatmap)
@@ -63,7 +63,8 @@ plotSummaries = function(fcount, count_method, mdata){
     # cat("<br>")
     # df = 
 
-
+    cat("<br>")
+    cat("<br>")
     cat("### How does gene coverage correspond to sequencing depth?\n")
     cat("<br>")
 
@@ -127,16 +128,16 @@ plotSummaries = function(fcount, count_method, mdata){
     colnames(gcountsF) = gsub('.bam', '', colnames(gcountsF))
     anncolF = mdata[match(finalSamples, mdata$Sample) ,c('Group', 'Type')]
     rownames(anncolF) = finalSamples
-    gp4 = pheatmap(log2(gcountsF+1), main='Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
-        cluster_rows=F, scale='none',annotation_col=anncolF, fontsize=7, cutree_cols = ncol(gcounts))
+    gp4 = pheatmap(log2(gcountsF+1), main='Final Samples: Log2 read coverage by gene', show_rownames=F, ylab='Genes', 
+        cluster_rows=F, scale='none',annotation_col=anncolF, fontsize=7, cutree_cols = ncol(gcountsF))
 
     # cat("<br>")
     # cat("<br>")
     # cat("How consistently are genes targeted across samples?\n")
     # cat("<br>")
-    #df = rowSums(gcounts>0) 
-    barplot(table(rowSums(gcounts > 0)), main="Consistency of gene coverage", 
-        ylab='Number of Genes', xlab="Number of samples genes are targeted in")
+    # df = rowSums(gcounts>0) 
+    # barplot(table(rowSums(gcounts > 0)), main="Consistency of gene coverage", 
+    #     ylab='Number of Genes', xlab="Number of samples genes are targeted in")
 
 
     # TODO convert barplot to ggplot
@@ -148,12 +149,12 @@ plotSummaries = function(fcount, count_method, mdata){
     #     xlab("Sample") + ylab("Fragments") + ggtitle("Fragments Detected Per Sample")
 
 
-    cat("<br>")
-    cat("<br>")
-    cat("How consistently are genes targeted across samples?\n")
-    cat("<br>")
-    barplot(table(rowSums(gcountsf > 0)), main="Consistency of gene coverage", 
-        ylab='Number of Genes', xlab="Number of samples genes are targeted in")
+    # cat("<br>")
+    # cat("<br>")
+    # cat("How consistently are genes targeted across samples?\n")
+    # cat("<br>")
+    # barplot(table(rowSums(gcountsf > 0)), main="Consistency of gene coverage", 
+    #     ylab='Number of Genes', xlab="Number of samples genes are targeted in")
 
 
     cat("<br>")
@@ -168,14 +169,33 @@ plotSummaries = function(fcount, count_method, mdata){
 
     cat("<br>")
     cat("<br>")
-    cat("Are any genes not covered in most/all FINAL samples?\n")
+    cat("Are any genes not covered in samples from the Final group?\n")
     cat("<br>")
 
-    cat("### Are any genes not covered in samples from the Final group?\n")
-    ncidx = order(rowSums(gcounts == 0), decreasing=T)
-    pheatmap(log2(gcountsf[ncidx,][1:50,] + 1), main="Log2 read coverage, 50 lowest covered",
-        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=6, cutree_cols = ncol(gcounts))
+    ncidx = order(rowSums(gcountsF == 0), decreasing=T)
+    pheatmap(log2(gcountsF[ncidx,][1:50,] + 1), main="Final: Log2 read coverage, 50 lowest covered",
+        cluster_rows=F, scale='none', annotation_col=anncol, fontsize=6, cutree_cols = ncol(gcountsF))
 
+
+    cat("<br>")
+    cat("<br>")
+    cat("Final: Are any genes not covered in most/all Final samples after pooling?\n")
+    cat("<br>")
+
+    df.combined= data.frame(Final.gDNA = rowSums(gcountsF[, grep("^D", colnames(gcountsF), value=T)]),
+                            Final.Plasmid = rowSums(gcountsF[, grep("^F", colnames(gcountsF), value=T)]))
+
+    ncidx = order(rowSums(df.combined == 0), decreasing=T)
+    pheatmap(log2(df.combined[ncidx,][1:50,] + 1), main="Final: Log2 read coverage, 50 lowest covered",
+        cluster_rows=F, cluster_cols=F, scale='none', fontsize=6, gaps_col = c(1,2))
+
+    cat("<br>")
+    cat("<br>")
+    cat("Final: Are any genes not covered in most/all Final samples after pooling?\n")
+    cat("<br>")
+    print(kable(df.combined[ncidx,][1:50,], padding=2) %>%
+    kable_styling("striped", full_width = F) %>%
+    row_spec(0, angle = 0))
 
 }
 ```
