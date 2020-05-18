@@ -387,7 +387,7 @@ ggplot(dtbncl, aes(x=niceNames, y=logReadCount, fill=Fragmentation)) +
     geom_boxplot(color="black") + theme_bw() + 
     theme(axis.text.x = element_text(angle = 90, face = "bold", size=10)) +
     scale_fill_manual(values=nice_colors)  +
-    ggtitle("Log2 read count per fragment") + ylab('Sample') +
+    ggtitle("Log2 read count per fragment") + ylab('Log2 read count') + xlab('') +
     theme(text = element_text(size=15)) + theme(legend.text=element_text(size=15)) 
 
 ```
@@ -778,7 +778,7 @@ Note that "GenesTargetedByMultiple" rows report the number of genes targeted by 
 Q: For genes that are represented, is the library fragment in the same orientation as the gene, or not?  
 
 #### NOTE: Font size increased On X axis and in Legend, labels changed to include spaces.
-```{r p013_fragmentsPerGeneHeatmap, echo=FALSE, fig.height=18, fig.width=8, fig.align="center"}
+```{r p013_fragmentsPerGeneHeatmap, echo=FALSE, fig.height=16, fig.width=9, fig.align="center"}
 # 
 
 df = data.frame(Pilot.gDNA.Stranded = pilot.gDNA.stats$FragmentsPerGeneStranded, 
@@ -811,7 +811,7 @@ Q: What about the few genes that are never represented?
 #### NOTE: Font size increased On X axis and in Legend, labels changed to include spaces.
   
   
-```{r p014_noCoverageGenesHeatmap, echo=FALSE, fig.height=20, fig.width=8, fig.align="center"}
+```{r p014_noCoverageGenesHeatmap, echo=FALSE, fig.height=16, fig.width=8, fig.align="center"}
 
 idx = order(rowSums(df < 1), decreasing=T)
 df2 = df[idx,][1:50,]
