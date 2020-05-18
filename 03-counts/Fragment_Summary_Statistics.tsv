@@ -1,0 +1,15 @@
+"Statistic"	"gDNA_Pilot"	"Plasmid_pilot"	"gDNA_Final"	"Plasmid_Final"
+"bpCoveredForward"	19961090	93257	20500538	19730276
+"pctCoveredForward"	95.9710606319359	0.44837096578155	98.5646763470986	94.8613284284991
+"bpCoveredReverse"	19949512	99274	20499865	19734222
+"pctCoveredReverse"	95.9710606319359	0.44837096578155	98.5646763470986	94.8613284284991
+"bpCoveredUnStranded"	20401392	191674	20571421	20225883
+"pctCoveredUnStranded"	98.0879916180876	0.921550730724909	98.9054752058169	97.2441607010159
+"GenesTargetedStranded"	8299	152	8310	8302
+"GenesMissedStranded"	34	8181	23	31
+"MeanFragmentsPerGeneStranded"	21	0	59.2	23.3
+"GenesTargetedByMultipleStranded"	8270	54	8308	8276
+"GenesTargetedUnStranded"	8310	305	8310	8307
+"GenesMissedUnStranded"	23	8028	23	26
+"MeanFragmentsPerGeneUnStranded"	42.9	0.1	119.9	47.2
+"GenesTargetedByMultipleUnStranded"	8307	111	8310	8301
