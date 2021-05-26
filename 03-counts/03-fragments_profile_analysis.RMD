@@ -325,13 +325,19 @@ nucleotideFreq = data.frame(Sample=s, Base=names(freq), Freq=freq)
 # ggplot(nucleotideFreq, aes(fill=Base, y=Freq, x=Sample)) +
 #     geom_bar(position="fill", stat="identity") + scale_fill_viridis(discrete=TRUE) + theme_bw() +
 #     xlab("") + ylab("Percent Base") + ggtitle("Nucleotide Frequency")
-
+# 2021-05-25 made axis.text.x and y size 14 instead of 12 and darkened the font from grey30 to grey20
 ggplot(nucleotideFreq, aes(fill=Base, y=Freq, x=Sample)) +
     geom_bar(position="fill", stat="identity", color="black") + 
     scale_fill_manual(values=nice_colors) + theme_bw() +
-    theme(text = element_text(size=12)) +
+    #theme(text = element_text(size=12)) +
     xlab("") + ylab("Percent Base") + ggtitle("Nucleotide Frequency") +
-    theme(text = element_text(size=15)) + theme(legend.text=element_text(size=15)) 
+    theme(text = element_text(size=16), 
+          legend.text=element_text(size=14),
+          axis.text.x = element_text(size=14, color="grey20"),
+          axis.text.y = element_text(size=14, color="grey20"))
+         
+    #theme(text = element_text(size=16)) + theme(legend.text=element_text(size=16)) +
+
 
 ```
 
@@ -585,12 +591,12 @@ The Final Plasmid fragment library provides high coverage across both genes and 
 How does coverage look across a larger region of the genome?
   
 #### NOTE: Modified to have larger font and to show only the first 5 largest contigs
-
+#### NOTE: 2021-05-25 the font size for numbered labels on contigs from .8 to .9 
 ```{r p013_morecoverage, echo=FALSE, fig.height=7, fig.width=16, fig.align="center"}
 kp = plotKaryotype(custom.genome, plot.type=3, plot.params=plot.params,
     chrom=names(clengths)[1:5], main="Fragment coverage across five largest contigs", cex=1.2)
 kpPlotRegions(kp, data.panel="ideogram", data=custom.ann, col=c("+"='black', "-"="darkgreen")[ann$V7])
-kpAddBaseNumbers(kp, tick.dist=150000, add.units=T, cex=.8)
+kpAddBaseNumbers(kp, tick.dist=150000, add.units=T, cex=.9)
 #kpPlotRegions(kp, data.panel=1, data=custom.Fcoverage, r0=0, r1=1, col='black', border='black', avoid.overlapping=T, num.layers=20)
 #kpPlotRegions(kp, data.panel=2, data=custom.Rcoverage, r0=0, r1=1, col='darkgreen', border='darkgreen', avoid.overlapping=T, num.layers=20)
 kpPlotCoverage(kp, data.panel=1, data=custom.Fcoverage, r0=0.02, r1=1, col='black', border='black', ymax=35)
